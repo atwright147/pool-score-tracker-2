@@ -1,0 +1,33 @@
+{
+	"files.watcherExclude": {
+		"**/routeTree.gen.ts": true
+	},
+	"search.exclude": {
+		"**/routeTree.gen.ts": true
+	},
+	"files.readonlyInclude": {
+		"**/routeTree.gen.ts": true
+	},
+	"testing.automaticallyOpenPeekView": "never",
+	"[javascript][typescript][javascriptreact][typescriptreact][json][jsonc][css]": {
+		"editor.defaultFormatter": "biomejs.biome",
+		"editor.formatOnSave": true,
+		"editor.codeActionsOnSave": {
+			"source.organizeImports.biome": "explicit"
+		},
+		"editor.rulers": [80]
+	},
+	"emmet.syntaxProfiles": {
+		"jsx": {
+			"markup.attributes": {
+				"class*": "className"
+			},
+			"markup.valuePrefix": {
+				"class*": "styles"
+			}
+		}
+	},
+	"editor.codeActionsOnSave": {
+		"source.organizeImports.biome": "explicit"
+	}
+}

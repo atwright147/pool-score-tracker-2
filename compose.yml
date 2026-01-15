@@ -1,0 +1,16 @@
+services:
+  pool-app:
+    build:
+      context: .
+      dockerfile: node.Dockerfile
+    container_name: pool_tracker
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./pool-data:/app/data  # This persists your SQLite file
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=file:/app/data/sqlite.db
+      - BETTER_AUTH_URL=https://your-domain.com # Important for Auth redirects
+    restart: always
