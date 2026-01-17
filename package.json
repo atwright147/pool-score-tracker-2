@@ -40,12 +40,12 @@
     "vite-tsconfig-paths": "^6.0.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.2.4",
+    "@biomejs/biome": "2.3.11",
     "@tanstack/devtools-vite": "^0.3.11",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",
     "@types/better-sqlite3": "^7.6.13",
-    "@types/node": "^22.10.2",
+    "@types/node": "^25.0.9",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.4",
@@ -53,7 +53,7 @@
     "jsdom": "^27.0.0",
     "typescript": "^5.7.2",
     "vite": "^7.1.7",
-    "vitest": "^3.0.5",
+    "vitest": "^4.0.17",
     "web-vitals": "^5.1.0"
   },
   "pnpm": {
