@@ -1,3 +1,4 @@
+import { Button, Group, Text } from "@mantine/core";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { signOut, useSession } from "~/lib/auth-client";
@@ -18,33 +19,30 @@ export function AuthButton() {
 	};
 
 	if (isPending) {
-		return <div className="text-sm">Loading...</div>;
+		return <Text size="sm">Loading...</Text>;
 	}
 
 	if (session) {
 		return (
-			<div className="flex items-center gap-4">
-				<span className="text-sm">
+			<Group gap="md">
+				<Text size="sm">
 					{session.user.name} ({session.user.email})
-				</span>
-				<button
-					type="button"
+				</Text>
+				<Button
+					color="red"
+					size="xs"
 					onClick={handleSignOut}
-					disabled={isSigningOut}
-					className="px-3 py-1 text-sm text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50"
+					loading={isSigningOut}
 				>
-					{isSigningOut ? "Signing out..." : "Sign Out"}
-				</button>
-			</div>
+					Sign Out
+				</Button>
+			</Group>
 		);
 	}
 
 	return (
-		<Link
-			to="/auth"
-			className="px-3 py-1 text-sm text-white bg-blue-600 rounded hover:bg-blue-700"
-		>
+		<Button component={Link} to="/auth" size="xs">
 			Sign In
-		</Link>
+		</Button>
 	);
 }

@@ -16,7 +16,9 @@
     "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.0.6",
+    "@mantine/core": "^7.17.8",
+    "@mantine/form": "^7.17.8",
+    "@mantine/hooks": "^7.17.8",
     "@tanstack/react-devtools": "^0.7.0",
     "@tanstack/react-query": "^5.66.5",
     "@tanstack/react-query-devtools": "^5.84.2",
@@ -30,9 +32,11 @@
     "drizzle-orm": "^0.45.1",
     "lucide-react": "^0.561.0",
     "nitro": "npm:nitro-nightly@latest",
+    "postcss": "^8.5.6",
+    "postcss-preset-mantine": "^1.18.0",
+    "postcss-simple-vars": "^7.0.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "tailwindcss": "^4.0.6",
     "vite-tsconfig-paths": "^6.0.2"
   },
   "devDependencies": {

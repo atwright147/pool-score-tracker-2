@@ -1,3 +1,4 @@
+import { Center, Paper, Stack, Text, Title } from "@mantine/core";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/protected")({
@@ -28,19 +29,25 @@ function ProtectedPage() {
 	const { session } = Route.useRouteContext();
 
 	return (
-		<div className="flex flex-col items-center justify-center min-h-screen gap-4">
-			<h1 className="text-3xl font-bold">Protected Page</h1>
-			<div className="p-6 bg-white rounded-lg shadow-md">
-				<p className="text-lg">
-					Welcome, <span className="font-semibold">{session.user.name}</span>!
-				</p>
-				<p className="mt-2 text-gray-600">
-					This page is only accessible to authenticated users.
-				</p>
-				<p className="mt-1 text-sm text-gray-500">
-					Email: {session.user.email}
-				</p>
-			</div>
-		</div>
+		<Center h="100vh">
+			<Stack align="center">
+				<Title order={1}>Protected Page</Title>
+				<Paper shadow="md" p="xl" radius="md" withBorder>
+					<Text size="lg">
+						Welcome,{" "}
+						<Text span fw={600}>
+							{session.user.name}
+						</Text>
+						!
+					</Text>
+					<Text mt="md" c="dimmed">
+						This page is only accessible to authenticated users.
+					</Text>
+					<Text mt="xs" size="sm" c="dimmed">
+						Email: {session.user.email}
+					</Text>
+				</Paper>
+			</Stack>
+		</Center>
 	);
 }

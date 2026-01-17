@@ -1,3 +1,4 @@
+import { MantineProvider, AppShell } from "@mantine/core";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import {
@@ -47,21 +48,25 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 			</head>
 			<body>
-				<Header />
-				{children}
-				<TanStackDevtools
-					config={{
-						position: "bottom-right",
-						openHotkey: undefined,
-					}}
-					plugins={[
-						{
-							name: "Tanstack Router",
-							render: <TanStackRouterDevtoolsPanel />,
-						},
-						TanStackQueryDevtools,
-					]}
-				/>
+				<MantineProvider defaultColorScheme="dark">
+					<AppShell header={{ height: 60 }} padding="md">
+						<Header />
+						<AppShell.Main>{children}</AppShell.Main>
+					</AppShell>
+					<TanStackDevtools
+						config={{
+							position: "bottom-right",
+							openHotkey: undefined,
+						}}
+						plugins={[
+							{
+								name: "Tanstack Router",
+								render: <TanStackRouterDevtoolsPanel />,
+							},
+							TanStackQueryDevtools,
+						]}
+					/>
+				</MantineProvider>
 				<Scripts />
 			</body>
 		</html>

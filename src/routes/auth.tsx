@@ -1,4 +1,17 @@
 import {
+	Alert,
+	Anchor,
+	Button,
+	Center,
+	Container,
+	Paper,
+	PasswordInput,
+	Stack,
+	Text,
+	TextInput,
+	Title,
+} from "@mantine/core";
+import {
 	createFileRoute,
 	useNavigate,
 	useSearch,
@@ -66,109 +79,86 @@ function AuthPage() {
 
 	if (isPending) {
 		return (
-			<div className="flex items-center justify-center min-h-screen">
-				Loading...
-			</div>
+			<Center h="100vh">
+				<Text>Loading...</Text>
+			</Center>
 		);
 	}
 
 	if (session) {
 		return (
-			<div className="flex flex-col items-center justify-center min-h-screen gap-4">
-				<h1 className="text-2xl font-bold">Welcome, {session.user.name}!</h1>
-				<p className="text-gray-600">Email: {session.user.email}</p>
-			</div>
+			<Center h="100vh">
+				<Stack align="center">
+					<Title order={1}>Welcome, {session.user.name}!</Title>
+					<Text c="dimmed">Email: {session.user.email}</Text>
+				</Stack>
+			</Center>
 		);
 	}
 
 	return (
-		<div className="flex items-center justify-center min-h-screen bg-gray-50">
-			<div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-				<h2 className="text-2xl font-bold text-center">
-					{isSignUp ? "Sign Up" : "Sign In"}
-				</h2>
+		<Center h="100vh" bg="gray.0">
+			<Container size="xs" w="100%">
+				<Paper shadow="md" p="xl" radius="md" withBorder>
+					<Title order={2} ta="center" mb="lg">
+						{isSignUp ? "Sign Up" : "Sign In"}
+					</Title>
 
-				<form onSubmit={handleSubmit} className="space-y-4">
-					{isSignUp && (
-						<div>
-							<label
-								htmlFor={nameId}
-								className="block text-sm font-medium text-gray-700"
-							>
-								Name
-							</label>
-							<input
-								id={nameId}
-								type="text"
-								value={name}
-								onChange={(e) => setName(e.target.value)}
-								required={isSignUp}
-								className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+					<form onSubmit={handleSubmit}>
+						<Stack gap="md">
+							{isSignUp && (
+								<TextInput
+									id={nameId}
+									label="Name"
+									value={name}
+									onChange={(e) => setName(e.target.value)}
+									required={isSignUp}
+								/>
+							)}
+
+							<TextInput
+								id={emailId}
+								label="Email"
+								type="email"
+								value={email}
+								onChange={(e) => setEmail(e.target.value)}
+								required
 							/>
-						</div>
-					)}
 
-					<div>
-						<label
-							htmlFor={emailId}
-							className="block text-sm font-medium text-gray-700"
+							<PasswordInput
+								id={passwordId}
+								label="Password"
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+								required
+							/>
+
+							{error && (
+								<Alert color="red" title="Error">
+									{error}
+								</Alert>
+							)}
+
+							<Button type="submit" fullWidth loading={loading}>
+								{isSignUp ? "Sign Up" : "Sign In"}
+							</Button>
+						</Stack>
+					</form>
+
+					<Text ta="center" mt="md">
+						<Anchor
+							component="button"
+							type="button"
+							onClick={() => setIsSignUp(!isSignUp)}
+							size="sm"
 						>
-							Email
-						</label>
-						<input
-							id={emailId}
-							type="email"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							required
-							className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-						/>
-					</div>
-
-					<div>
-						<label
-							htmlFor={passwordId}
-							className="block text-sm font-medium text-gray-700"
-						>
-							Password
-						</label>
-						<input
-							id={passwordId}
-							type="password"
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-							required
-							className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-						/>
-					</div>
-
-					{error && (
-						<div className="p-3 text-sm text-red-600 bg-red-50 rounded-md">
-							{error}
-						</div>
-					)}
-
-					<button
-						type="submit"
-						disabled={loading}
-						className="w-full px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-					>
-						{loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
-					</button>
-				</form>
-
-				<div className="text-center">
-					<button
-						type="button"
-						onClick={() => setIsSignUp(!isSignUp)}
-						className="text-sm text-blue-600 hover:underline"
-					>
-						{isSignUp
-							? "Already have an account? Sign in"
-							: "Need an account? Sign up"}
-					</button>
-				</div>
-			</div>
-		</div>
+							{isSignUp
+								? "Already have an account? Sign in"
+								: "Need an account? Sign up"}
+						</Anchor>
+					</Text>
+				</Paper>
+			</Container>
+		</Center>
 	);
 }
