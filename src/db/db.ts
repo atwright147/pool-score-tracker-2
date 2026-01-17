@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 
-import * as schema from "./schema";
+import * as schema from "~/db/schema";
 
 // In a serverless env you'd handle this differently,
 // but for self-hosting on a VPS, a single persistent connection is fine.
