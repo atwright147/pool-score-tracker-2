@@ -10,20 +10,21 @@ import {
 	Text,
 	TextInput,
 	Title,
-} from "@mantine/core";
+} from '@mantine/core';
 import {
 	createFileRoute,
 	useNavigate,
 	useSearch,
-} from "@tanstack/react-router";
-import { useId, useState } from "react";
-import { signIn, signUp, useSession } from "~/lib/auth-client";
+} from '@tanstack/react-router';
+import { useId, useState } from 'react';
 
-export const Route = createFileRoute("/auth")({
+import { signIn, signUp, useSession } from '~/lib/auth-client';
+
+export const Route = createFileRoute('/auth')({
 	component: AuthPage,
 	validateSearch: (search: Record<string, unknown>) => {
 		return {
-			redirect: (search.redirect as string) || "/",
+			redirect: (search.redirect as string) || '/',
 		};
 	},
 });
@@ -31,12 +32,12 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
 	const { data: session, isPending } = useSession();
 	const navigate = useNavigate();
-	const search = useSearch({ from: "/auth" });
+	const search = useSearch({ from: '/auth' });
 	const [isSignUp, setIsSignUp] = useState(false);
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const [name, setName] = useState("");
-	const [error, setError] = useState("");
+	const [email, setEmail] = useState('');
+	const [password, setPassword] = useState('');
+	const [name, setName] = useState('');
+	const [error, setError] = useState('');
 	const [loading, setLoading] = useState(false);
 	const nameId = useId();
 	const emailId = useId();
@@ -44,7 +45,7 @@ function AuthPage() {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		setError("");
+		setError('');
 		setLoading(true);
 
 		try {
@@ -55,7 +56,7 @@ function AuthPage() {
 					name,
 				});
 				if (result.error) {
-					setError(result.error.message || "Sign up failed");
+					setError(result.error.message || 'Sign up failed');
 					return;
 				}
 			} else {
@@ -64,14 +65,14 @@ function AuthPage() {
 					password,
 				});
 				if (result.error) {
-					setError(result.error.message || "Sign in failed");
+					setError(result.error.message || 'Sign in failed');
 					return;
 				}
 			}
 			// Redirect to the intended page or home
 			await navigate({ to: search.redirect as string });
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Authentication failed");
+			setError(err instanceof Error ? err.message : 'Authentication failed');
 		} finally {
 			setLoading(false);
 		}
@@ -101,7 +102,7 @@ function AuthPage() {
 			<Container size="xs" w="100%">
 				<Paper shadow="md" p="xl" radius="md" withBorder>
 					<Title order={2} ta="center" mb="lg">
-						{isSignUp ? "Sign Up" : "Sign In"}
+						{isSignUp ? 'Sign Up' : 'Sign In'}
 					</Title>
 
 					<form onSubmit={handleSubmit}>
@@ -140,7 +141,7 @@ function AuthPage() {
 							)}
 
 							<Button type="submit" fullWidth loading={loading}>
-								{isSignUp ? "Sign Up" : "Sign In"}
+								{isSignUp ? 'Sign Up' : 'Sign In'}
 							</Button>
 						</Stack>
 					</form>
@@ -153,8 +154,8 @@ function AuthPage() {
 							size="sm"
 						>
 							{isSignUp
-								? "Already have an account? Sign in"
-								: "Need an account? Sign up"}
+								? 'Already have an account? Sign in'
+								: 'Need an account? Sign up'}
 						</Anchor>
 					</Text>
 				</Paper>

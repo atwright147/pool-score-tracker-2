@@ -1,23 +1,23 @@
-import { Center, Paper, Stack, Text, Title } from "@mantine/core";
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
+import { Center, Paper, Stack, Text, Title } from '@mantine/core';
+import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createServerFn } from '@tanstack/react-start';
 
-const getSession = createServerFn({ method: "GET" }).handler(
+const getSession = createServerFn({ method: 'GET' }).handler(
 	async ({ request }) => {
-		const { getSessionFromRequest } = await import("~/lib/auth.server");
+		const { getSessionFromRequest } = await import('~/lib/auth.server');
 		return await getSessionFromRequest(request);
 	},
 );
 
-export const Route = createFileRoute("/protected")({
+export const Route = createFileRoute('/protected')({
 	beforeLoad: async () => {
 		const session = await getSession();
 
 		if (!session) {
 			throw redirect({
-				to: "/auth",
+				to: '/auth',
 				search: {
-					redirect: "/protected",
+					redirect: '/protected',
 				},
 			});
 		}
@@ -36,7 +36,7 @@ function ProtectedPage() {
 				<Title order={1}>Protected Page</Title>
 				<Paper shadow="md" p="xl" radius="md" withBorder>
 					<Text size="lg">
-						Welcome,{" "}
+						Welcome,{' '}
 						<Text span fw={600}>
 							{session.user.name}
 						</Text>

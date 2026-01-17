@@ -1,7 +1,8 @@
-import { Button, Group, Text } from "@mantine/core";
-import { Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { signOut, useSession } from "~/lib/auth-client";
+import { Button, Group, Text } from '@mantine/core';
+import { Link } from '@tanstack/react-router';
+import { useState } from 'react';
+
+import { signOut, useSession } from '~/lib/auth-client';
 
 export function AuthButton() {
 	const { data: session, isPending } = useSession();
@@ -12,7 +13,7 @@ export function AuthButton() {
 		try {
 			await signOut();
 		} catch (error) {
-			console.error("Sign out failed:", error);
+			console.error('Sign out failed:', error);
 		} finally {
 			setIsSigningOut(false);
 		}

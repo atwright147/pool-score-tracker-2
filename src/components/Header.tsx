@@ -7,8 +7,8 @@ import {
 	NavLink,
 	Stack,
 	Title,
-} from "@mantine/core";
-import { Link } from "@tanstack/react-router";
+} from '@mantine/core';
+import { Link } from '@tanstack/react-router';
 import {
 	ChevronDown,
 	ChevronRight,
@@ -18,8 +18,8 @@ import {
 	Shield,
 	SquareFunction,
 	StickyNote,
-} from "lucide-react";
-import { useState } from "react";
+} from 'lucide-react';
+import { useState } from 'react';
 
 export default function Header() {
 	const [isOpen, setIsOpen] = useState(false);
@@ -32,7 +32,7 @@ export default function Header() {
 			<AppShell.Header p="md">
 				<Group>
 					<Burger opened={isOpen} onClick={() => setIsOpen(true)} />
-					<Link to="/" style={{ display: "flex", alignItems: "center" }}>
+					<Link to="/" style={{ display: 'flex', alignItems: 'center' }}>
 						<img
 							src="/tanstack-word-logo-white.svg"
 							alt="TanStack Logo"
