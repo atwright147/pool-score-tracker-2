@@ -1,4 +1,4 @@
-Welcome to your new TanStack app! 
+Welcome to your new TanStack app!
 
 # Getting Started
 
@@ -8,6 +8,15 @@ To run this application:
 pnpm install
 pnpm dev
 ```
+
+## Authentication
+
+This project is configured with [Better Auth](https://better-auth.com) for authentication. See [AUTH_SETUP.md](AUTH_SETUP.md) for detailed setup instructions and usage examples.
+
+Quick start:
+1. Set `BETTER_AUTH_SECRET` in your `.env` file
+2. Visit `/auth` to sign up or sign in
+3. Use the `useSession` hook to access the current user
 
 # Building For Production
 
