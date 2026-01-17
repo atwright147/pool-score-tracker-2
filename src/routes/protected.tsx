@@ -1,13 +1,14 @@
 import { Center, Paper, Stack, Text, Title } from '@mantine/core';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
+import { getRequestHeaders } from '@tanstack/react-start/server';
 
-const getSession = createServerFn({ method: 'GET' }).handler(
-	async ({ request }) => {
-		const { getSessionFromRequest } = await import('~/lib/auth.server');
-		return await getSessionFromRequest(request);
-	},
-);
+const getSession = createServerFn({ method: 'GET' }).handler(async () => {
+	const { auth } = await import('~/lib/auth');
+	const headers = getRequestHeaders();
+	const session = await auth.api.getSession({ headers });
+	return session;
+});
 
 export const Route = createFileRoute('/protected')({
 	beforeLoad: async () => {
