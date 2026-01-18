@@ -1,3 +1,4 @@
+import { relations } from 'drizzle-orm';
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 //#region Better Auth tables
@@ -117,3 +118,47 @@ export const matches = sqliteTable('matches', {
 	),
 	finishedAt: integer('finished_at', { mode: 'timestamp' }),
 });
+
+// Relations
+export const playerRelations = relations(player, ({ one, many }) => ({
+	user: one(user, {
+		fields: [player.userId],
+		references: [user.id],
+	}),
+	requestedFriendships: many(friendship, { relationName: 'requester' }),
+	receivedFriendships: many(friendship, { relationName: 'addressee' }),
+	matchesAsPlayerOne: many(matches, { relationName: 'playerOne' }),
+	matchesAsPlayerTwo: many(matches, { relationName: 'playerTwo' }),
+	matchesWon: many(matches, { relationName: 'winner' }),
+}));
+
+export const friendshipRelations = relations(friendship, ({ one }) => ({
+	requester: one(player, {
+		fields: [friendship.requesterId],
+		references: [player.id],
+		relationName: 'requester',
+	}),
+	addressee: one(player, {
+		fields: [friendship.addresseeId],
+		references: [player.id],
+		relationName: 'addressee',
+	}),
+}));
+
+export const matchesRelations = relations(matches, ({ one }) => ({
+	playerOne: one(player, {
+		fields: [matches.playerOneId],
+		references: [player.id],
+		relationName: 'playerOne',
+	}),
+	playerTwo: one(player, {
+		fields: [matches.playerTwoId],
+		references: [player.id],
+		relationName: 'playerTwo',
+	}),
+	winner: one(player, {
+		fields: [matches.winnerId],
+		references: [player.id],
+		relationName: 'winner',
+	}),
+}));
