@@ -1,6 +1,6 @@
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
-// Better Auth tables
+//#region Better Auth tables
 export const user = sqliteTable('user', {
 	id: text('id').primaryKey(),
 	name: text('name').notNull(),
@@ -54,6 +54,7 @@ export const verification = sqliteTable('verification', {
 	createdAt: integer('createdAt', { mode: 'timestamp' }),
 	updatedAt: integer('updatedAt', { mode: 'timestamp' }),
 });
+//#endregion
 
 // Player profiles - extends auth user with pool-specific data
 export const player = sqliteTable('player', {
