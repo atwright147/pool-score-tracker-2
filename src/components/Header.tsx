@@ -33,11 +33,7 @@ export default function Header() {
 				<Group>
 					<Burger opened={isOpen} onClick={() => setIsOpen(true)} />
 					<Link to="/" style={{ display: 'flex', alignItems: 'center' }}>
-						<img
-							src="/tanstack-word-logo-white.svg"
-							alt="TanStack Logo"
-							style={{ height: 40 }}
-						/>
+						<img src="/logo.svg" alt="CueConnect Logo" style={{ height: 25 }} />
 					</Link>
 				</Group>
 			</AppShell.Header>
