@@ -1,12 +1,12 @@
-import { createFileRoute } from '@tanstack/react-router';
 import {
-	Route as RouteIcon,
-	Server,
-	Shield,
-	Sparkles,
-	Waves,
-	Zap,
-} from 'lucide-react';
+	IconBolt,
+	IconRoute,
+	IconServer,
+	IconShield,
+	IconSparkles,
+	IconWaveSine,
+} from '@tabler/icons-react';
+import { createFileRoute } from '@tanstack/react-router';
 
 interface Feature {
 	id: number;
@@ -21,42 +21,42 @@ function App() {
 	const features: Feature[] = [
 		{
 			id: 1,
-			icon: <Zap className="w-12 h-12 text-cyan-400" />,
+			icon: <IconBolt className="w-12 h-12 text-cyan-400" />,
 			title: 'Powerful Server Functions',
 			description:
 				'Write server-side code that seamlessly integrates with your client components. Type-safe, secure, and simple.',
 		},
 		{
 			id: 2,
-			icon: <Server className="w-12 h-12 text-cyan-400" />,
+			icon: <IconServer className="w-12 h-12 text-cyan-400" />,
 			title: 'Flexible Server Side Rendering',
 			description:
 				'Full-document SSR, streaming, and progressive enhancement out of the box. Control exactly what renders where.',
 		},
 		{
 			id: 3,
-			icon: <RouteIcon className="w-12 h-12 text-cyan-400" />,
+			icon: <IconRoute className="w-12 h-12 text-cyan-400" />,
 			title: 'API Routes',
 			description:
 				'Build type-safe API endpoints alongside your application. No separate backend needed.',
 		},
 		{
 			id: 4,
-			icon: <Shield className="w-12 h-12 text-cyan-400" />,
+			icon: <IconShield className="w-12 h-12 text-cyan-400" />,
 			title: 'Strongly Typed Everything',
 			description:
 				'End-to-end type safety from server to client. Catch errors before they reach production.',
 		},
 		{
 			id: 5,
-			icon: <Waves className="w-12 h-12 text-cyan-400" />,
+			icon: <IconWaveSine className="w-12 h-12 text-cyan-400" />,
 			title: 'Full Streaming Support',
 			description:
 				'Stream data from server to client progressively. Perfect for AI applications and real-time updates.',
 		},
 		{
 			id: 6,
-			icon: <Sparkles className="w-12 h-12 text-cyan-400" />,
+			icon: <IconSparkles className="w-12 h-12 text-cyan-400" />,
 			title: 'Next Generation Ready',
 			description:
 				'Built from the ground up for modern web applications. Deploy anywhere JavaScript runs.',

@@ -7,11 +7,11 @@ import {
 	Text,
 	Title,
 } from '@mantine/core';
+import { IconCheck, IconX } from '@tabler/icons-react';
 import { createFileRoute } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 import { getRequestHeaders } from '@tanstack/react-start/server';
 import { and, eq, or } from 'drizzle-orm';
-import { Check, X } from 'lucide-react';
 import { useState } from 'react';
 import { db } from '~/db/db';
 import { friendship } from '~/db/schema';
@@ -224,7 +224,7 @@ function DashboardPage() {
 										loading={processingRequest === request.id}
 										disabled={processingRequest !== null}
 									>
-										<Check size={18} />
+										<IconCheck size={18} />
 									</ActionIcon>
 									<ActionIcon
 										color="red"
@@ -234,7 +234,7 @@ function DashboardPage() {
 										loading={processingRequest === request.id}
 										disabled={processingRequest !== null}
 									>
-										<X size={18} />
+										<IconX size={18} />
 									</ActionIcon>
 								</Group>
 							</Group>
