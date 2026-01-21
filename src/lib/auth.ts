@@ -1,5 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { createAuthMiddleware } from 'better-auth/api';
 
 import { db } from '~/db/db';
 import * as schema from '~/db/schema';
@@ -44,8 +45,29 @@ export const auth = betterAuth({
 		// Require minimum password length
 		minPasswordLength: 8,
 	},
-	secret: secret || 'dev-secret-DO-NOT-USE-IN-PRODUCTION',
+	secret: secret ?? 'dev-secret-DO-NOT-USE-IN-PRODUCTION',
 	trustedOrigins: getTrustedOrigins(),
+	// Automatically create a player profile when a user signs up
+	hooks: {
+		after: createAuthMiddleware(async (ctx) => {
+			// Check if this is a user sign-up
+			if (ctx.path.startsWith('/sign-up')) {
+				const newSession = ctx.context.newSession;
+				if (newSession) {
+					const user = newSession.user;
+
+					// Create player profile
+					await db.insert(schema.player).values({
+						id: user.id,
+						userId: user.id,
+						displayName: user.name,
+						gamesPlayed: 0,
+						gamesWon: 0,
+					});
+				}
+			}
+		}),
+	},
 	// Optional: Add social providers
 	// socialProviders: {
 	//   github: {

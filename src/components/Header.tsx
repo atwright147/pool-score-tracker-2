@@ -67,6 +67,22 @@ export default function Header() {
 
 					<NavLink
 						component={Link}
+						to="/logout"
+						label="Logout"
+						leftSection={<Lock size={20} />}
+						onClick={() => setIsOpen(false)}
+					/>
+
+					<NavLink
+						component={Link}
+						to="/friends"
+						label="Friends"
+						leftSection={<Shield size={20} />}
+						onClick={() => setIsOpen(false)}
+					/>
+
+					<NavLink
+						component={Link}
 						to="/protected"
 						label="Protected Page"
 						leftSection={<Shield size={20} />}
