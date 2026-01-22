@@ -1,6 +1,5 @@
 import {
 	AppShell,
-	Box,
 	Burger,
 	Drawer,
 	Group,
@@ -9,13 +8,10 @@ import {
 	Title,
 } from '@mantine/core';
 import {
-	IconChevronDown,
-	IconChevronRight,
-	IconFunction,
+	IconFriends,
 	IconHome,
 	IconLock,
-	IconNetwork,
-	IconNote,
+	IconLogout2,
 	IconShield,
 } from '@tabler/icons-react';
 import { Link } from '@tanstack/react-router';
@@ -23,12 +19,13 @@ import { useState } from 'react';
 
 export default function Header() {
 	const [isOpen, setIsOpen] = useState(false);
-	const [groupedExpanded, setGroupedExpanded] = useState<
+	const [_groupedExpanded, _setGroupedExpandedd] = useState<
 		Record<string, boolean>
 	>({});
 
 	return (
 		<>
+			_groupedExpanded_setGroupedExpanded
 			<AppShell.Header p="md">
 				<Group>
 					<Burger opened={isOpen} onClick={() => setIsOpen(true)} />
@@ -37,7 +34,6 @@ export default function Header() {
 					</Link>
 				</Group>
 			</AppShell.Header>
-
 			<Drawer
 				opened={isOpen}
 				onClose={() => setIsOpen(false)}
@@ -65,7 +61,7 @@ export default function Header() {
 						component={Link}
 						to="/logout"
 						label="Logout"
-						leftSection={<IconLock size={20} />}
+						leftSection={<IconLogout2 size={20} />}
 						onClick={() => setIsOpen(false)}
 					/>
 
@@ -73,7 +69,7 @@ export default function Header() {
 						component={Link}
 						to="/friends"
 						label="Friends"
-						leftSection={<IconShield size={20} />}
+						leftSection={<IconFriends size={20} />}
 						onClick={() => setIsOpen(false)}
 					/>
 
@@ -85,7 +81,7 @@ export default function Header() {
 						onClick={() => setIsOpen(false)}
 					/>
 
-					<NavLink
+					{/* <NavLink
 						component={Link}
 						to="/demo/start/server-funcs"
 						label="Start - Server Functions"
@@ -120,9 +116,9 @@ export default function Header() {
 								StartSSRDemo: !prev.StartSSRDemo,
 							}));
 						}}
-					/>
+					/> */}
 
-					{groupedExpanded.StartSSRDemo && (
+					{/* {groupedExpanded.StartSSRDemo && (
 						<Box pl="md">
 							<Stack gap="xs">
 								<NavLink
@@ -158,7 +154,7 @@ export default function Header() {
 						label="TanStack Query"
 						leftSection={<IconNetwork size={20} />}
 						onClick={() => setIsOpen(false)}
-					/>
+					/> */}
 				</Stack>
 			</Drawer>
 		</>
