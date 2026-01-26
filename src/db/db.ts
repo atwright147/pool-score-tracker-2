@@ -6,7 +6,7 @@ import * as schema from '~/db/schema';
 // In a serverless env you'd handle this differently,
 // but for self-hosting on a VPS, a single persistent connection is fine.
 const sqlite = new Database(
-	process.env.DATABASE_URL?.replace('file:', '') || 'local.db',
+	process.env.DATABASE_URL?.replace('file:', '') || 'data/local.db',
 );
 
 export const db = drizzle(sqlite, { schema });

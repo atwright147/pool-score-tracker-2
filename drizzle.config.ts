@@ -6,6 +6,6 @@ export default defineConfig({
   dialect: 'sqlite',
   dbCredentials: {
     // This allows the CLI to find the DB both locally and in Docker
-    url: process.env.DATABASE_URL || 'local.db',
+    url: process.env.DATABASE_URL || 'data/local.db',
   },
 });
