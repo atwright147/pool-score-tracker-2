@@ -1,4 +1,12 @@
-import { Paper, Stack, Table, Text, TextInput, Title } from '@mantine/core';
+import {
+	Button,
+	Paper,
+	Stack,
+	Table,
+	Text,
+	TextInput,
+	Title,
+} from '@mantine/core';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 import { createFileRoute } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
@@ -49,6 +57,118 @@ const getFriends = createServerFn({ method: 'GET' }).handler(async () => {
 		f.requesterId === currentPlayer.id ? f.addressee : f.requester,
 	);
 });
+
+// Server function to fetch pending friend requests (received)
+const getPendingRequests = createServerFn({ method: 'GET' }).handler(
+	async () => {
+		const { auth } = await import('~/lib/auth');
+		const headers = getRequestHeaders();
+		const session = await auth.api.getSession({ headers });
+
+		if (!session?.user.id) {
+			return [];
+		}
+
+		const currentPlayer = await db.query.player.findFirst({
+			where: (player, { eq }) => eq(player.userId, session.user.id),
+		});
+
+		if (!currentPlayer) {
+			return [];
+		}
+
+		// Find pending requests where current user is the addressee
+		const pendingRequests = await db.query.friendship.findMany({
+			where: and(
+				eq(friendship.addresseeId, currentPlayer.id),
+				eq(friendship.status, 'pending'),
+			),
+			with: {
+				requester: true,
+			},
+		});
+
+		return pendingRequests.map((req) => ({
+			friendshipId: req.id,
+			...req.requester,
+		}));
+	},
+);
+
+// Server function to fetch sent pending requests
+const getSentRequests = createServerFn({ method: 'GET' }).handler(async () => {
+	const { auth } = await import('~/lib/auth');
+	const headers = getRequestHeaders();
+	const session = await auth.api.getSession({ headers });
+
+	if (!session?.user.id) {
+		return [];
+	}
+
+	const currentPlayer = await db.query.player.findFirst({
+		where: (player, { eq }) => eq(player.userId, session.user.id),
+	});
+
+	if (!currentPlayer) {
+		return [];
+	}
+
+	// Find pending requests where current user is the requester
+	const sentRequests = await db.query.friendship.findMany({
+		where: and(
+			eq(friendship.requesterId, currentPlayer.id),
+			eq(friendship.status, 'pending'),
+		),
+		with: {
+			addressee: true,
+		},
+	});
+
+	return sentRequests.map((req) => req.addressee);
+});
+
+// Server function to fetch declined friend requests
+const getDeclinedRequests = createServerFn({ method: 'GET' }).handler(
+	async () => {
+		const { auth } = await import('~/lib/auth');
+		const headers = getRequestHeaders();
+		const session = await auth.api.getSession({ headers });
+
+		if (!session?.user.id) {
+			return [];
+		}
+
+		const currentPlayer = await db.query.player.findFirst({
+			where: (player, { eq }) => eq(player.userId, session.user.id),
+		});
+
+		if (!currentPlayer) {
+			return [];
+		}
+
+		// Find declined requests where current user is involved
+		const declinedRequests = await db.query.friendship.findMany({
+			where: and(
+				or(
+					eq(friendship.requesterId, currentPlayer.id),
+					eq(friendship.addresseeId, currentPlayer.id),
+				),
+				eq(friendship.status, 'declined'),
+			),
+			with: {
+				requester: true,
+				addressee: true,
+			},
+		});
+
+		return declinedRequests.map((req) => ({
+			friendshipId: req.id,
+			player:
+				req.requesterId === currentPlayer.id ? req.addressee : req.requester,
+			wasRequester: req.requesterId === currentPlayer.id,
+		}));
+	},
+);
 
 // Server function to search players by name
 const searchPlayers = createServerFn({ method: 'POST' })
@@ -164,9 +284,108 @@ const createFriendRequest = createServerFn({ method: 'POST' })
 		return { success: true };
 	});
 
+// Server function to accept a friend request
+const acceptFriendRequest = createServerFn({ method: 'POST' })
+	.inputValidator((friendshipId: number) => friendshipId)
+	.handler(async ({ data: friendshipId }) => {
+		const { auth } = await import('~/lib/auth');
+		const headers = getRequestHeaders();
+		const session = await auth.api.getSession({ headers });
+
+		if (!session?.user.id) {
+			throw new Error('Not authenticated');
+		}
+
+		const currentPlayer = await db.query.player.findFirst({
+			where: (player, { eq }) => eq(player.userId, session.user.id),
+		});
+
+		if (!currentPlayer) {
+			throw new Error('Player profile not found');
+		}
+
+		// Verify the current user is the addressee
+		const friendshipRecord = await db.query.friendship.findFirst({
+			where: and(
+				eq(friendship.id, friendshipId),
+				eq(friendship.addresseeId, currentPlayer.id),
+				eq(friendship.status, 'pending'),
+			),
+		});
+
+		if (!friendshipRecord) {
+			throw new Error('Friend request not found or already processed');
+		}
+
+		// Update status to accepted
+		await db
+			.update(friendship)
+			.set({ status: 'accepted', updatedAt: new Date() })
+			.where(eq(friendship.id, friendshipId));
+
+		return { success: true };
+	});
+
+// Server function to decline a friend request
+const declineFriendRequest = createServerFn({ method: 'POST' })
+	.inputValidator((friendshipId: number) => friendshipId)
+	.handler(async ({ data: friendshipId }) => {
+		const { auth } = await import('~/lib/auth');
+		const headers = getRequestHeaders();
+		const session = await auth.api.getSession({ headers });
+
+		if (!session?.user.id) {
+			throw new Error('Not authenticated');
+		}
+
+		const currentPlayer = await db.query.player.findFirst({
+			where: (player, { eq }) => eq(player.userId, session.user.id),
+		});
+
+		if (!currentPlayer) {
+			throw new Error('Player profile not found');
+		}
+
+		// Verify the current user is the addressee
+		const friendshipRecord = await db.query.friendship.findFirst({
+			where: and(
+				eq(friendship.id, friendshipId),
+				eq(friendship.addresseeId, currentPlayer.id),
+				eq(friendship.status, 'pending'),
+			),
+		});
+
+		if (!friendshipRecord) {
+			throw new Error('Friend request not found or already processed');
+		}
+
+		// Update status to declined
+		await db
+			.update(friendship)
+			.set({ status: 'declined', updatedAt: new Date() })
+			.where(eq(friendship.id, friendshipId));
+
+		return { success: true };
+	});
+
 export const Route = createFileRoute('/_protected/friends')({
 	component: FriendsPage,
-	loader: () => getFriends(),
+	loader: async () => {
+		const [friends, pendingRequests, sentRequests, declinedRequests] =
+			await Promise.all([
+				getFriends(),
+				getPendingRequests(),
+				getSentRequests(),
+				getDeclinedRequests(),
+			]);
+
+		return {
+			friends,
+			pendingRequests,
+			sentRequests,
+			declinedRequests,
+		};
+	},
 });
 
 interface PlayerToAdd {
@@ -175,7 +394,12 @@ interface PlayerToAdd {
 }
 
 function FriendsPage() {
-	const friends = Route.useLoaderData() ?? [];
+	const loaderData = Route.useLoaderData();
+	const friends = loaderData?.friends ?? [];
+	const pendingRequests = loaderData?.pendingRequests ?? [];
+	const sentRequests = loaderData?.sentRequests ?? [];
+	const declinedRequests = loaderData?.declinedRequests ?? [];
+
 	const [searchQuery, setSearchQuery] = useState('');
 	const [debouncedQuery] = useDebouncedValue(searchQuery, 300);
 	const [opened, { open, close }] = useDisclosure(false);
@@ -191,6 +415,9 @@ function FriendsPage() {
 		}>
 	>([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [processingRequest, setProcessingRequest] = useState<number | null>(
+		null,
+	);
 
 	const handleTableOnClick = (playerToAdd: PlayerToAdd | null): void => {
 		console.info(playerToAdd);
@@ -210,13 +437,37 @@ function FriendsPage() {
 			setSearchQuery('');
 			setSearchResults([]);
 			setPlayerToAdd(null);
-			// You might want to show a success notification here
-			console.log('Friend request sent successfully');
+			// Reload the page to refresh all lists
+			window.location.reload();
 		} catch (error) {
 			console.error('Failed to send friend request:', error);
 			// You might want to show an error notification here
 		} finally {
 			setIsSubmitting(false);
+		}
+	};
+
+	const handleAcceptRequest = async (friendshipId: number) => {
+		setProcessingRequest(friendshipId);
+		try {
+			await acceptFriendRequest({ data: friendshipId });
+			window.location.reload();
+		} catch (error) {
+			console.error('Failed to accept friend request:', error);
+		} finally {
+			setProcessingRequest(null);
+		}
+	};
+
+	const handleDeclineRequest = async (friendshipId: number) => {
+		setProcessingRequest(friendshipId);
+		try {
+			await declineFriendRequest({ data: friendshipId });
+			window.location.reload();
+		} catch (error) {
+			console.error('Failed to decline friend request:', error);
+		} finally {
+			setProcessingRequest(null);
 		}
 	};
 
@@ -285,6 +536,67 @@ function FriendsPage() {
 						</Paper>
 					)}
 				</Stack>
+
+				{/* Pending Friend Requests (Received) */}
+				{pendingRequests.length > 0 && (
+					<>
+						<Title order={2} mt="xl">
+							Pending Friend Requests
+						</Title>
+						{pendingRequests.map((request) => (
+							<Paper key={request.id} shadow="md" p="md" radius="md" withBorder>
+								<Stack gap="sm">
+									<div>
+										<Text fw={600}>{request.displayName}</Text>
+										<Text size="sm" c="dimmed">
+											Games: {request.gamesPlayed} | Won: {request.gamesWon}
+										</Text>
+									</div>
+									<div style={{ display: 'flex', gap: '8px' }}>
+										<Button
+											size="sm"
+											color="green"
+											onClick={() => handleAcceptRequest(request.friendshipId)}
+											loading={processingRequest === request.friendshipId}
+										>
+											Accept
+										</Button>
+										<Button
+											size="sm"
+											color="red"
+											variant="outline"
+											onClick={() => handleDeclineRequest(request.friendshipId)}
+											loading={processingRequest === request.friendshipId}
+										>
+											Decline
+										</Button>
+									</div>
+								</Stack>
+							</Paper>
+						))}
+					</>
+				)}
+
+				{/* Sent Friend Requests */}
+				{sentRequests.length > 0 && (
+					<>
+						<Title order={2} mt="xl">
+							Sent Friend Requests
+						</Title>
+						<Text size="sm" c="dimmed" mb="sm">
+							Waiting for these players to accept your friend request
+						</Text>
+						{sentRequests.map((request) => (
+							<Paper key={request.id} shadow="md" p="md" radius="md" withBorder>
+								<Text fw={600}>{request.displayName}</Text>
+								<Text size="sm" c="dimmed">
+									Games: {request.gamesPlayed} | Won: {request.gamesWon}
+								</Text>
+							</Paper>
+						))}
+					</>
+				)}
+
 				{/* Friends List */}
 				<Title order={2} mt="xl">
 					Your Friends
@@ -300,6 +612,35 @@ function FriendsPage() {
 							</Text>
 						</Paper>
 					))
+				)}
+
+				{/* Declined Friend Requests */}
+				{declinedRequests.length > 0 && (
+					<>
+						<Title order={2} mt="xl">
+							Declined Friend Requests
+						</Title>
+						{declinedRequests.map((request) => (
+							<Paper
+								key={request.friendshipId}
+								shadow="md"
+								p="md"
+								radius="md"
+								withBorder
+							>
+								<Text fw={600}>{request.player.displayName}</Text>
+								<Text size="sm" c="dimmed">
+									Games: {request.player.gamesPlayed} | Won:{' '}
+									{request.player.gamesWon}
+								</Text>
+								<Text size="xs" c="dimmed" mt="xs">
+									{request.wasRequester
+										? 'Your request was declined'
+										: 'You declined this request'}
+								</Text>
+							</Paper>
+						))}
+					</>
 				)}
 			</Stack>
 
