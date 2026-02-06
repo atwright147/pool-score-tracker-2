@@ -25,7 +25,9 @@ async function main() {
 		const userId = faker.string.uuid();
 		const firstName = faker.person.firstName();
 		const lastName = faker.person.lastName();
-		const email = faker.internet.email({ firstName, lastName }).toLowerCase();
+		const email = faker.internet
+			.email({ firstName, lastName, provider: 'example.com' })
+			.toLowerCase();
 
 		users.push({
 			id: userId,
