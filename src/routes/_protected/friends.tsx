@@ -1,5 +1,6 @@
 import {
 	Button,
+	Group,
 	Paper,
 	Stack,
 	Table,
@@ -577,71 +578,92 @@ function FriendsPage() {
 					</>
 				)}
 
-				{/* Sent Friend Requests */}
-				{sentRequests.length > 0 && (
-					<>
+				<Group grow align="start">
+					{/* Sent Friend Requests */}
+					{sentRequests.length > 0 && (
+						<Stack>
+							<Title order={2} mt="xl">
+								Pending Friend Requests
+							</Title>
+							<Text size="sm" c="dimmed" mb="sm">
+								Waiting for these players to accept your friend request
+							</Text>
+							{sentRequests.map((request) => (
+								<Paper
+									key={request.id}
+									shadow="md"
+									p="md"
+									radius="md"
+									withBorder
+								>
+									<Text fw={600}>{request.displayName}</Text>
+									<Text size="sm" c="dimmed">
+										Games: {request.gamesPlayed} | Won: {request.gamesWon}
+									</Text>
+								</Paper>
+							))}
+						</Stack>
+					)}
+					{/* Friends List */}
+					<Stack>
 						<Title order={2} mt="xl">
-							Sent Friend Requests
+							Your Friends
 						</Title>
 						<Text size="sm" c="dimmed" mb="sm">
-							Waiting for these players to accept your friend request
+							Your current friends
 						</Text>
-						{sentRequests.map((request) => (
-							<Paper key={request.id} shadow="md" p="md" radius="md" withBorder>
-								<Text fw={600}>{request.displayName}</Text>
-								<Text size="sm" c="dimmed">
-									Games: {request.gamesPlayed} | Won: {request.gamesWon}
-								</Text>
-							</Paper>
-						))}
-					</>
-				)}
-
-				{/* Friends List */}
-				<Title order={2} mt="xl">
-					Your Friends
-				</Title>
-				{friends.length === 0 ? (
-					<Text c="dimmed">No friends yet</Text>
-				) : (
-					friends.map((friend) => (
-						<Paper key={friend.id} shadow="md" p="md" radius="md" withBorder>
-							<Text fw={600}>{friend.displayName}</Text>
-							<Text size="sm" c="dimmed">
-								Games: {friend.gamesPlayed} | Won: {friend.gamesWon}
+						{friends.length === 0 ? (
+							<Text c="dimmed">No friends yet</Text>
+						) : (
+							friends.map((friend) => (
+								<Paper
+									key={friend.id}
+									shadow="md"
+									p="md"
+									radius="md"
+									withBorder
+								>
+									<Text fw={600}>{friend.displayName}</Text>
+									<Text size="sm" c="dimmed">
+										Games: {friend.gamesPlayed} | Won: {friend.gamesWon}
+									</Text>
+								</Paper>
+							))
+						)}
+					</Stack>
+					{/* Declined Friend Requests */}
+					{declinedRequests.length > 0 && (
+						<Stack>
+							<Title order={2} mt="xl">
+								Declined Friend Requests
+							</Title>
+							<Text size="sm" c="dimmed" mb="sm">
+								Players who declined your friend request
 							</Text>
-						</Paper>
-					))
-				)}
 
-				{/* Declined Friend Requests */}
-				{declinedRequests.length > 0 && (
-					<>
-						<Title order={2} mt="xl">
-							Declined Friend Requests
-						</Title>
-						{declinedRequests.map((request) => (
-							<Paper
-								key={request.friendshipId}
-								shadow="md"
-								p="md"
-								radius="md"
-								withBorder
-							>
-								<Text fw={600}>{request.player.displayName}</Text>
-								<Text size="sm" c="dimmed">
-									Games: {request.player.gamesPlayed} | Won:{' '}
-									{request.player.gamesWon}
-								</Text>
-								<Text size="xs" c="dimmed" mt="xs">
-									{request.wasRequester
-										? 'Your request was declined'
-										: 'You declined this request'}
-								</Text>
-							</Paper>
-						))}
-					</>
-				)}
+							{declinedRequests.map((request) => (
+								<Paper
+									key={request.friendshipId}
+									shadow="md"
+									p="md"
+									radius="md"
+									withBorder
+								>
+									<Text fw={600}>{request.player.displayName}</Text>
+									<Text size="sm" c="dimmed">
+										Games: {request.player.gamesPlayed} | Won:{' '}
+										{request.player.gamesWon}
+									</Text>
+									<Text size="xs" c="dimmed" mt="xs">
+										{request.wasRequester
+											? 'Your request was declined'
+											: 'You declined this request'}
+									</Text>
+								</Paper>
+							))}
+						</Stack>
+					)}
+				</Group>
 			</Stack>
 
 			<FriendAddModal
