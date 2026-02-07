@@ -98,7 +98,7 @@ function AuthPage() {
 	}
 
 	return (
-		<Center h="100vh" bg="gray.0">
+		<Center h="100vh">
 			<Container size="xs" w="100%">
 				<Paper shadow="md" p="xl" radius="md" withBorder>
 					<Title order={2} ta="center" mb="lg">
