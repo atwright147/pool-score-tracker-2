@@ -401,6 +401,10 @@ function FriendsPage() {
 	const sentRequests = loaderData?.sentRequests ?? [];
 	const declinedRequests = loaderData?.declinedRequests ?? [];
 
+	// Split declined requests into two categories
+	const declinedByMe = declinedRequests.filter((req) => !req.wasRequester);
+	const declinedByOthers = declinedRequests.filter((req) => req.wasRequester);
+
 	const [searchQuery, setSearchQuery] = useState('');
 	const [debouncedQuery] = useDebouncedValue(searchQuery, 300);
 	const [opened, { open, close }] = useDisclosure(false);
@@ -542,39 +546,51 @@ function FriendsPage() {
 				{pendingRequests.length > 0 && (
 					<>
 						<Title order={2} mt="xl">
-							Pending Friend Requests
+							Incoming Friend Requests
 						</Title>
-						{pendingRequests.map((request) => (
-							<Paper key={request.id} shadow="md" p="md" radius="md" withBorder>
-								<Stack gap="sm">
-									<div>
-										<Text fw={600}>{request.displayName}</Text>
-										<Text size="sm" c="dimmed">
-											Games: {request.gamesPlayed} | Won: {request.gamesWon}
-										</Text>
-									</div>
-									<div style={{ display: 'flex', gap: '8px' }}>
-										<Button
-											size="sm"
-											color="green"
-											onClick={() => handleAcceptRequest(request.friendshipId)}
-											loading={processingRequest === request.friendshipId}
-										>
-											Accept
-										</Button>
-										<Button
-											size="sm"
-											color="red"
-											variant="outline"
-											onClick={() => handleDeclineRequest(request.friendshipId)}
-											loading={processingRequest === request.friendshipId}
-										>
-											Decline
-										</Button>
-									</div>
-								</Stack>
-							</Paper>
-						))}
+						<Group grow align="start">
+							{pendingRequests.map((request) => (
+								<Paper
+									key={request.id}
+									shadow="md"
+									p="md"
+									radius="md"
+									withBorder
+								>
+									<Stack gap="sm">
+										<Stack gap={0}>
+											<Text fw={600}>{request.displayName}</Text>
+											<Text size="sm" c="dimmed">
+												Games: {request.gamesPlayed} | Won: {request.gamesWon}
+											</Text>
+										</Stack>
+										<Group>
+											<Button
+												size="sm"
+												color="green"
+												onClick={() =>
+													handleAcceptRequest(request.friendshipId)
+												}
+												loading={processingRequest === request.friendshipId}
+											>
+												Accept
+											</Button>
+											<Button
+												size="sm"
+												color="red"
+												variant="outline"
+												onClick={() =>
+													handleDeclineRequest(request.friendshipId)
+												}
+												loading={processingRequest === request.friendshipId}
+											>
+												Decline
+											</Button>
+										</Group>
+									</Stack>
+								</Paper>
+							))}
+						</Group>
 					</>
 				)}
 
@@ -631,17 +647,17 @@ function FriendsPage() {
 							))
 						)}
 					</Stack>
-					{/* Declined Friend Requests */}
-					{declinedRequests.length > 0 && (
+					{/* Requests Declined by Others */}
+					{declinedByOthers.length > 0 && (
 						<Stack>
 							<Title order={2} mt="xl">
-								Declined Friend Requests
+								Declined by Others
 							</Title>
 							<Text size="sm" c="dimmed" mb="sm">
 								Players who declined your friend request
 							</Text>
 
-							{declinedRequests.map((request) => (
+							{declinedByOthers.map((request) => (
 								<Paper
 									key={request.friendshipId}
 									shadow="md"
@@ -654,10 +670,32 @@ function FriendsPage() {
 										Games: {request.player.gamesPlayed} | Won:{' '}
 										{request.player.gamesWon}
 									</Text>
-									<Text size="xs" c="dimmed" mt="xs">
-										{request.wasRequester
-											? 'Your request was declined'
-											: 'You declined this request'}
+								</Paper>
+							))}
+						</Stack>
+					)}
+					{/* Requests Declined by Me */}
+					{declinedByMe.length > 0 && (
+						<Stack>
+							<Title order={2} mt="xl">
+								Declined by Me
+							</Title>
+							<Text size="sm" c="dimmed" mb="sm">
+								Requests you declined
+							</Text>
+
+							{declinedByMe.map((request) => (
+								<Paper
+									key={request.friendshipId}
+									shadow="md"
+									p="md"
+									radius="md"
+									withBorder
+								>
+									<Text fw={600}>{request.player.displayName}</Text>
+									<Text size="sm" c="dimmed">
+										Games: {request.player.gamesPlayed} | Won:{' '}
+										{request.player.gamesWon}
 									</Text>
 								</Paper>
 							))}
