@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import { hashPassword } from 'better-auth/crypto';
 import { db } from './db';
 import * as schema from './schema';
 
@@ -21,6 +22,31 @@ async function main() {
 	const players = [];
 	const now = new Date();
 
+	// Add Andy Wright as the first user (for testing/dev)
+	const andyUserId = faker.string.uuid();
+	const andyPlayerId = faker.string.uuid();
+	users.push({
+		id: andyUserId,
+		name: 'Andy Wright',
+		email: 'andy@example.com',
+		emailVerified: true,
+		image: faker.image.avatar(),
+		createdAt: faker.date.past({ years: 2 }),
+		updatedAt: now,
+	});
+
+	players.push({
+		id: andyPlayerId,
+		userId: andyUserId,
+		displayName: 'Andy Wright',
+		skillLevel: 8,
+		gamesPlayed: 42,
+		gamesWon: 25,
+		createdAt: faker.date.past({ years: 2 }),
+		updatedAt: now,
+	});
+
+	// Create additional random users
 	for (let i = 0; i < 10; i++) {
 		const userId = faker.string.uuid();
 		const firstName = faker.person.firstName();
@@ -57,18 +83,114 @@ async function main() {
 
 	await db.insert(schema.user).values(users);
 	console.log(`✓ Created ${users.length} users`);
+	console.log('  → Test account: andy@example.com / password');
+
+	// Create account records for email/password authentication
+	const hashedPassword = await hashPassword('password');
+	const accounts = users.map((user) => ({
+		id: faker.string.uuid(),
+		accountId: user.email,
+		providerId: 'credential',
+		userId: user.id,
+		password: hashedPassword,
+		accessToken: null,
+		refreshToken: null,
+		idToken: null,
+		accessTokenExpiresAt: null,
+		refreshTokenExpiresAt: null,
+		scope: null,
+		createdAt: user.createdAt,
+		updatedAt: user.updatedAt,
+	}));
+
+	await db.insert(schema.account).values(accounts);
+	console.log(
+		`✓ Created ${accounts.length} accounts with password: "password"`,
+	);
 
 	await db.insert(schema.player).values(players);
 	console.log(`✓ Created ${players.length} players`);
 
 	// Create friendships
 	const friendships = [];
-	for (let i = 0; i < 15; i++) {
+
+	// Andy's specific test friendships (Andy is at index 0)
+	const andyPlayer = players[0];
+
+	// Andy sends friend requests (requester)
+	friendships.push({
+		requesterId: andyPlayer.id,
+		addresseeId: players[1].id, // accepted
+		status: 'accepted' as const,
+		createdAt: faker.date.past({ years: 1 }),
+		updatedAt: now,
+	});
+
+	friendships.push({
+		requesterId: andyPlayer.id,
+		addresseeId: players[2].id, // pending
+		status: 'pending' as const,
+		createdAt: faker.date.past({ years: 1 }),
+		updatedAt: now,
+	});
+
+	friendships.push({
+		requesterId: andyPlayer.id,
+		addresseeId: players[3].id, // declined
+		status: 'declined' as const,
+		createdAt: faker.date.past({ years: 1 }),
+		updatedAt: now,
+	});
+
+	// Andy receives friend requests (addressee)
+	friendships.push({
+		requesterId: players[4].id, // accepted
+		addresseeId: andyPlayer.id,
+		status: 'accepted' as const,
+		createdAt: faker.date.past({ years: 1 }),
+		updatedAt: now,
+	});
+
+	friendships.push({
+		requesterId: players[5].id, // pending
+		addresseeId: andyPlayer.id,
+		status: 'pending' as const,
+		createdAt: faker.date.past({ years: 1 }),
+		updatedAt: now,
+	});
+
+	friendships.push({
+		requesterId: players[6].id, // declined
+		addresseeId: andyPlayer.id,
+		status: 'declined' as const,
+		createdAt: faker.date.past({ years: 1 }),
+		updatedAt: now,
+	});
+
+	// Track existing friendship pairs to avoid duplicates
+	const existingPairs = new Set<string>();
+	friendships.forEach((f) => {
+		// Create a unique key for each pair (order-independent)
+		const key = [f.requesterId, f.addresseeId].sort().join('-');
+		existingPairs.add(key);
+	});
+
+	// Create additional random friendships (avoid duplicates)
+	let attempts = 0;
+	while (friendships.length < 21 && attempts < 100) {
+		attempts++;
 		const requester = faker.helpers.arrayElement(players);
 		const addressee = faker.helpers.arrayElement(
 			players.filter((p) => p.id !== requester.id),
 		);
 
+		// Check if this pair already has a friendship
+		const pairKey = [requester.id, addressee.id].sort().join('-');
+		if (existingPairs.has(pairKey)) {
+			continue; // Skip this pair, try another
+		}
+
+		existingPairs.add(pairKey);
 		friendships.push({
 			requesterId: requester.id,
 			addresseeId: addressee.id,
@@ -86,6 +208,9 @@ async function main() {
 
 	await db.insert(schema.friendship).values(friendships);
 	console.log(`✓ Created ${friendships.length} friendships`);
+	console.log(
+		'  → Andy has 3 sent (accepted/pending/declined) and 3 received (accepted/pending/declined) friend requests',
+	);
 
 	// Create matches
 	const matches = [];
