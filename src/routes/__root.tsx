@@ -1,15 +1,21 @@
-import { AppShell, MantineProvider } from '@mantine/core';
-import { TanStackDevtools } from '@tanstack/react-devtools';
+import {
+	AppShell,
+	Container,
+	MantineProvider,
+	Text,
+	Title,
+} from '@mantine/core';
 import type { QueryClient } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import {
 	createRootRouteWithContext,
 	HeadContent,
+	Link,
 	Scripts,
 } from '@tanstack/react-router';
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
+import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
 import Header from '~/components/Header';
-import TanStackQueryDevtools from '~/integrations/tanstack-query/devtools';
 import appCss from '~/styles.css?url';
 
 interface MyRouterContext {
@@ -39,6 +45,27 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 	}),
 
 	shellComponent: RootDocument,
+
+	notFoundComponent: () => {
+		return (
+			<Container size="sm" style={{ textAlign: 'center', paddingTop: '4rem' }}>
+				<Title order={1} size="4rem" c="dimmed">
+					404
+				</Title>
+				<Title order={2} mt="md">
+					Page Not Found
+				</Title>
+				<Text c="dimmed" mt="md">
+					The page you're looking for doesn't exist.
+				</Text>
+				<Link to="/" style={{ display: 'inline-block', marginTop: '2rem' }}>
+					<Text c="blue" td="underline">
+						Go back home
+					</Text>
+				</Link>
+			</Container>
+		);
+	},
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
@@ -53,19 +80,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 						<Header />
 						<AppShell.Main>{children}</AppShell.Main>
 					</AppShell>
-					<TanStackDevtools
-						config={{
-							position: 'bottom-right',
-							openHotkey: undefined,
-						}}
-						plugins={[
-							{
-								name: 'Tanstack Router',
-								render: <TanStackRouterDevtoolsPanel />,
-							},
-							TanStackQueryDevtools,
-						]}
-					/>
+					<TanStackRouterDevtools position="bottom-right" />
+					<ReactQueryDevtools buttonPosition="bottom-left" />
 				</MantineProvider>
 				<Scripts />
 			</body>
