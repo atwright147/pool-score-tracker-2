@@ -1,5 +1,6 @@
 import {
 	Alert,
+	Anchor,
 	Badge,
 	Button,
 	Group,
@@ -14,7 +15,7 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconAlertCircle } from '@tabler/icons-react';
-import { createFileRoute, useRouter } from '@tanstack/react-router';
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 import { getRequestHeaders } from '@tanstack/react-start/server';
 import { and, desc, eq, ne, sql } from 'drizzle-orm';
@@ -35,7 +36,7 @@ const getCurrentPlayer = createServerFn({ method: 'GET' }).handler(async () => {
 
 	return await db.query.player.findFirst({
 		where: (player, { eq }) => eq(player.userId, session.user.id),
-	});
+	})
 });
 
 // Server function to get current active match for the user
@@ -48,7 +49,7 @@ const getCurrentMatch = createServerFn({ method: 'GET' }).handler(async () => {
 
 	const playerProfile = await db.query.player.findFirst({
 		where: (player, { eq }) => eq(player.userId, session.user.id),
-	});
+	})
 
 	if (!playerProfile) return null;
 
@@ -75,7 +76,7 @@ const getCurrentMatch = createServerFn({ method: 'GET' }).handler(async () => {
 			},
 		},
 		orderBy: desc(matches.createdAt),
-	});
+	})
 });
 
 // Server function to get previous matches for the user
@@ -89,7 +90,7 @@ const getPreviousMatches = createServerFn({ method: 'GET' }).handler(
 
 		const playerProfile = await db.query.player.findFirst({
 			where: (player, { eq }) => eq(player.userId, session.user.id),
-		});
+		})
 
 		if (!playerProfile) return [];
 
@@ -109,7 +110,7 @@ const getPreviousMatches = createServerFn({ method: 'GET' }).handler(
 			},
 			orderBy: desc(matches.createdAt),
 			limit: 50,
-		});
+		})
 	},
 );
 
@@ -123,7 +124,7 @@ const getPlayers = createServerFn({ method: 'GET' }).handler(async () => {
 
 	return await db.query.player.findMany({
 		orderBy: (player, { asc }) => [asc(player.displayName)],
-	});
+	})
 });
 
 // Server function to create a new match
@@ -138,7 +139,7 @@ const createMatch = createServerFn({ method: 'POST' })
 
 		const playerProfile = await db.query.player.findFirst({
 			where: (player, { eq }) => eq(player.userId, session.user.id),
-		});
+		})
 
 		if (!playerProfile) throw new Error('Player profile not found');
 
@@ -147,7 +148,7 @@ const createMatch = createServerFn({ method: 'POST' })
 				eq(matches.status, 'active'),
 				sql`EXISTS (SELECT 1 FROM match_players WHERE match_id = ${matches.id} AND player_id = ${playerProfile.id})`,
 			),
-		});
+		})
 
 		if (activeMatch) throw new Error('There is already an active match');
 
@@ -158,21 +159,21 @@ const createMatch = createServerFn({ method: 'POST' })
 					status: 'active',
 				})
 				.returning()
-				.get();
+				.get()
 
 			const matchPlayersData = data.playerIds.map((playerId) => ({
 				matchId: match.id,
 				playerId,
 				score: 0,
-			}));
+			}))
 
 			tx.insert(schema.matchPlayers).values(matchPlayersData).run();
 
 			return match;
-		});
+		})
 
 		return newMatch;
-	});
+	})
 
 // Server function to end a match
 const endMatch = createServerFn({ method: 'POST' })
@@ -198,7 +199,7 @@ const endMatch = createServerFn({ method: 'POST' })
 					finishedAt: new Date(),
 				})
 				.where(eq(matches.id, data.matchId))
-				.run();
+				.run()
 			return { success: true };
 		}
 
@@ -210,7 +211,7 @@ const endMatch = createServerFn({ method: 'POST' })
 					finishedAt: new Date(),
 				})
 				.where(eq(matches.id, data.matchId))
-				.run();
+				.run()
 
 			if (data.playerScores) {
 				for (const ps of data.playerScores) {
@@ -222,15 +223,15 @@ const endMatch = createServerFn({ method: 'POST' })
 								eq(schema.matchPlayers.playerId, ps.playerId),
 							),
 						)
-						.run();
+						.run()
 				}
 			}
-		});
+		})
 
 		return { success: true };
-	});
+	})
 
-export const Route = createFileRoute('/_protected/matches')({
+export const Route = createFileRoute('/_protected/matches/')({
 	component: MatchesPage,
 	loader: async () => {
 		const [currentMatch, previousMatches, players, currentPlayer] =
@@ -239,7 +240,7 @@ export const Route = createFileRoute('/_protected/matches')({
 				getPreviousMatches(),
 				getPlayers(),
 				getCurrentPlayer(),
-			]);
+			])
 		return { currentMatch, previousMatches, players, currentPlayer };
 	},
 });
@@ -256,7 +257,7 @@ function PlayerName({ name, isMe }: { name: string; isMe: boolean }) {
 				</Badge>
 			)}
 		</Group>
-	);
+	)
 }
 
 function MatchesPage() {
@@ -277,23 +278,23 @@ function MatchesPage() {
 		try {
 			await createMatch({ data: { playerIds: selectedPlayerIds } });
 			setSelectedPlayerIds([]);
-			close();
+			close()
 			await router.invalidate();
 		} catch (error) {
 			alert(error instanceof Error ? error.message : 'Failed to create match');
 		} finally {
 			setCreating(false);
 		}
-	};
+	}
 
 	const handleOpenEndMatch = () => {
 		const scores: Record<string, number> = {};
 		currentMatch?.matchPlayers?.forEach((mp) => {
 			scores[mp.playerId] = mp.score || 0;
-		});
+		})
 		setMatchScores(scores);
 		openEndMatch();
-	};
+	}
 
 	const handleConfirmEndMatch = async () => {
 		if (!currentMatch) return;
@@ -305,12 +306,12 @@ function MatchesPage() {
 			const playerScores = Object.entries(matchScores).map(
 				([playerId, score]) => {
 					if (score > maxScore) {
-						maxScore = score;
+						maxScore = score
 						winnerId = playerId;
 					}
 					return { playerId, score };
 				},
-			);
+			)
 
 			await endMatch({
 				data: {
@@ -319,7 +320,7 @@ function MatchesPage() {
 					playerScores,
 					status: 'finished',
 				},
-			});
+			})
 			closeEndMatch();
 			await router.invalidate();
 		} catch (error) {
@@ -327,7 +328,7 @@ function MatchesPage() {
 		} finally {
 			setEnding(false);
 		}
-	};
+	}
 
 	const handleAbandonMatch = async () => {
 		if (!currentMatch) return;
@@ -338,17 +339,17 @@ function MatchesPage() {
 					matchId: currentMatch.id,
 					status: 'abandoned',
 				},
-			});
+			})
 			await router.invalidate();
 		} catch (error) {
 			alert(error instanceof Error ? error.message : 'Failed to abandon match');
 		}
-	};
+	}
 
 	const handleCloseCreateModal = () => {
 		setSelectedPlayerIds([]);
 		close();
-	};
+	}
 
 	const playerOptions = (players || []).map((p) => ({
 		value: p.id,
@@ -366,11 +367,19 @@ function MatchesPage() {
 				<Paper shadow="sm" p="md" withBorder>
 					<Stack gap="md">
 						<Group justify="space-between">
-							<Title order={2}>Current Match</Title>
+							<Anchor
+								component={Link}
+								to="/matches/$matchId"
+								params={{ matchId: currentMatch.id.toString() }}
+								underline='never'
+								c='inherit'
+							>
+								<Title order={2}>Current Match</Title>
+							</Anchor>
 							<Group>
 								<Button
-									variant="outline"
-									color="red"
+									variant='outline'
+									color='red'
 									onClick={handleAbandonMatch}
 								>
 									Abandon
@@ -382,14 +391,14 @@ function MatchesPage() {
 						<Group gap="xl" justify="center" wrap="wrap">
 							{currentMatch.matchPlayers?.map((mp, index) => (
 								<Stack key={mp.playerId} align="center" gap="xs">
-									<Text size="sm" c="dimmed">
+									<Text size='sm' c='dimmed'>
 										Player {index + 1}
 									</Text>
 									<PlayerName
 										name={mp.player.displayName}
 										isMe={currentPlayer?.id === mp.playerId}
 									/>
-									<Text size="xl" fw={700}>
+									<Text size='xl' fw={700}>
 										{mp.score || 0}
 									</Text>
 								</Stack>
@@ -419,12 +428,18 @@ function MatchesPage() {
 							{previousMatches.map((match) => (
 								<Table.Tr key={match.id}>
 									<Table.Td>
-										{match.createdAt
-											? new Date(match.createdAt).toLocaleDateString()
-											: 'N/A'}
+										<Anchor
+											component={Link}
+											to="/matches/$matchId"
+											params={{ matchId: match.id.toString() }}
+										>
+											{match.createdAt
+												? new Date(match.createdAt).toLocaleDateString()
+												: 'N/A'}
+										</Anchor>
 									</Table.Td>
 									<Table.Td>
-										<Group gap="xs">
+										<Group gap='xs'>
 											{match.matchPlayers?.map((mp, idx) => (
 												<span key={mp.playerId}>
 													<PlayerName
@@ -470,7 +485,7 @@ function MatchesPage() {
 						<Alert
 							icon={<IconAlertCircle size={16} />}
 							title="Active Match Exists"
-							color="yellow"
+							color='yellow'
 						>
 							End your current match before starting a new one.
 						</Alert>
@@ -539,5 +554,5 @@ function MatchesPage() {
 				</Stack>
 			</Modal>
 		</Stack>
-	);
+	)
 }

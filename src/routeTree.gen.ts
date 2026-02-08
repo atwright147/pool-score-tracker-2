@@ -15,14 +15,15 @@ import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as ProtectedProfileRouteImport } from './routes/_protected/profile'
-import { Route as ProtectedMatchesRouteImport } from './routes/_protected/matches'
 import { Route as ProtectedFriendsRouteImport } from './routes/_protected/friends'
 import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
+import { Route as ProtectedMatchesIndexRouteImport } from './routes/_protected/matches/index'
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo/start.server-funcs'
 import { Route as DemoStartApiRequestRouteImport } from './routes/demo/start.api-request'
 import { Route as DemoApiTqTodosRouteImport } from './routes/demo/api.tq-todos'
 import { Route as DemoApiNamesRouteImport } from './routes/demo/api.names'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ProtectedMatchesMatchIdRouteImport } from './routes/_protected/matches/$matchId'
 import { Route as DemoStartSsrIndexRouteImport } from './routes/demo/start.ssr.index'
 import { Route as DemoStartSsrSpaModeRouteImport } from './routes/demo/start.ssr.spa-mode'
 import { Route as DemoStartSsrFullSsrRouteImport } from './routes/demo/start.ssr.full-ssr'
@@ -57,11 +58,6 @@ const ProtectedProfileRoute = ProtectedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => ProtectedRoute,
 } as any)
-const ProtectedMatchesRoute = ProtectedMatchesRouteImport.update({
-  id: '/matches',
-  path: '/matches',
-  getParentRoute: () => ProtectedRoute,
-} as any)
 const ProtectedFriendsRoute = ProtectedFriendsRouteImport.update({
   id: '/friends',
   path: '/friends',
@@ -70,6 +66,11 @@ const ProtectedFriendsRoute = ProtectedFriendsRouteImport.update({
 const ProtectedDashboardRoute = ProtectedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedMatchesIndexRoute = ProtectedMatchesIndexRouteImport.update({
+  id: '/matches/',
+  path: '/matches/',
   getParentRoute: () => ProtectedRoute,
 } as any)
 const DemoStartServerFuncsRoute = DemoStartServerFuncsRouteImport.update({
@@ -96,6 +97,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProtectedMatchesMatchIdRoute = ProtectedMatchesMatchIdRouteImport.update({
+  id: '/matches/$matchId',
+  path: '/matches/$matchId',
+  getParentRoute: () => ProtectedRoute,
 } as any)
 const DemoStartSsrIndexRoute = DemoStartSsrIndexRouteImport.update({
   id: '/demo/start/ssr/',
@@ -124,14 +130,15 @@ export interface FileRoutesByFullPath {
   '/logout': typeof LogoutRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/friends': typeof ProtectedFriendsRoute
-  '/matches': typeof ProtectedMatchesRoute
   '/profile': typeof ProtectedProfileRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/matches/$matchId': typeof ProtectedMatchesMatchIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/api/tq-todos': typeof DemoApiTqTodosRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
+  '/matches/': typeof ProtectedMatchesIndexRoute
   '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
   '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
   '/demo/start/ssr/spa-mode': typeof DemoStartSsrSpaModeRoute
@@ -143,14 +150,15 @@ export interface FileRoutesByTo {
   '/logout': typeof LogoutRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/friends': typeof ProtectedFriendsRoute
-  '/matches': typeof ProtectedMatchesRoute
   '/profile': typeof ProtectedProfileRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/matches/$matchId': typeof ProtectedMatchesMatchIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/api/tq-todos': typeof DemoApiTqTodosRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
+  '/matches': typeof ProtectedMatchesIndexRoute
   '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
   '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
   '/demo/start/ssr/spa-mode': typeof DemoStartSsrSpaModeRoute
@@ -164,14 +172,15 @@ export interface FileRoutesById {
   '/logout': typeof LogoutRoute
   '/_protected/dashboard': typeof ProtectedDashboardRoute
   '/_protected/friends': typeof ProtectedFriendsRoute
-  '/_protected/matches': typeof ProtectedMatchesRoute
   '/_protected/profile': typeof ProtectedProfileRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/_protected/matches/$matchId': typeof ProtectedMatchesMatchIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/api/tq-todos': typeof DemoApiTqTodosRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
+  '/_protected/matches/': typeof ProtectedMatchesIndexRoute
   '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
   '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
   '/demo/start/ssr/spa-mode': typeof DemoStartSsrSpaModeRoute
@@ -185,14 +194,15 @@ export interface FileRouteTypes {
     | '/logout'
     | '/dashboard'
     | '/friends'
-    | '/matches'
     | '/profile'
     | '/demo/tanstack-query'
+    | '/matches/$matchId'
     | '/api/auth/$'
     | '/demo/api/names'
     | '/demo/api/tq-todos'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
+    | '/matches/'
     | '/demo/start/ssr/data-only'
     | '/demo/start/ssr/full-ssr'
     | '/demo/start/ssr/spa-mode'
@@ -204,14 +214,15 @@ export interface FileRouteTypes {
     | '/logout'
     | '/dashboard'
     | '/friends'
-    | '/matches'
     | '/profile'
     | '/demo/tanstack-query'
+    | '/matches/$matchId'
     | '/api/auth/$'
     | '/demo/api/names'
     | '/demo/api/tq-todos'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
+    | '/matches'
     | '/demo/start/ssr/data-only'
     | '/demo/start/ssr/full-ssr'
     | '/demo/start/ssr/spa-mode'
@@ -224,14 +235,15 @@ export interface FileRouteTypes {
     | '/logout'
     | '/_protected/dashboard'
     | '/_protected/friends'
-    | '/_protected/matches'
     | '/_protected/profile'
     | '/demo/tanstack-query'
+    | '/_protected/matches/$matchId'
     | '/api/auth/$'
     | '/demo/api/names'
     | '/demo/api/tq-todos'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
+    | '/_protected/matches/'
     | '/demo/start/ssr/data-only'
     | '/demo/start/ssr/full-ssr'
     | '/demo/start/ssr/spa-mode'
@@ -299,13 +311,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedProfileRouteImport
       parentRoute: typeof ProtectedRoute
     }
-    '/_protected/matches': {
-      id: '/_protected/matches'
-      path: '/matches'
-      fullPath: '/matches'
-      preLoaderRoute: typeof ProtectedMatchesRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
     '/_protected/friends': {
       id: '/_protected/friends'
       path: '/friends'
@@ -318,6 +323,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof ProtectedDashboardRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/matches/': {
+      id: '/_protected/matches/'
+      path: '/matches'
+      fullPath: '/matches/'
+      preLoaderRoute: typeof ProtectedMatchesIndexRouteImport
       parentRoute: typeof ProtectedRoute
     }
     '/demo/start/server-funcs': {
@@ -355,6 +367,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_protected/matches/$matchId': {
+      id: '/_protected/matches/$matchId'
+      path: '/matches/$matchId'
+      fullPath: '/matches/$matchId'
+      preLoaderRoute: typeof ProtectedMatchesMatchIdRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/demo/start/ssr/': {
       id: '/demo/start/ssr/'
       path: '/demo/start/ssr'
@@ -389,15 +408,17 @@ declare module '@tanstack/react-router' {
 interface ProtectedRouteChildren {
   ProtectedDashboardRoute: typeof ProtectedDashboardRoute
   ProtectedFriendsRoute: typeof ProtectedFriendsRoute
-  ProtectedMatchesRoute: typeof ProtectedMatchesRoute
   ProtectedProfileRoute: typeof ProtectedProfileRoute
+  ProtectedMatchesMatchIdRoute: typeof ProtectedMatchesMatchIdRoute
+  ProtectedMatchesIndexRoute: typeof ProtectedMatchesIndexRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedDashboardRoute: ProtectedDashboardRoute,
   ProtectedFriendsRoute: ProtectedFriendsRoute,
-  ProtectedMatchesRoute: ProtectedMatchesRoute,
   ProtectedProfileRoute: ProtectedProfileRoute,
+  ProtectedMatchesMatchIdRoute: ProtectedMatchesMatchIdRoute,
+  ProtectedMatchesIndexRoute: ProtectedMatchesIndexRoute,
 }
 
 const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
