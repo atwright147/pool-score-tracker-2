@@ -14,7 +14,7 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconAlertCircle } from '@tabler/icons-react';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 import { getRequestHeaders } from '@tanstack/react-start/server';
 import { and, desc, eq, ne, sql } from 'drizzle-orm';
@@ -136,19 +136,29 @@ const createMatch = createServerFn({ method: 'POST' })
 
 		if (!session?.user.id) throw new Error('Not authenticated');
 
+		const playerProfile = await db.query.player.findFirst({
+			where: (player, { eq }) => eq(player.userId, session.user.id),
+		});
+
+		if (!playerProfile) throw new Error('Player profile not found');
+
 		const activeMatch = await db.query.matches.findFirst({
-			where: eq(matches.status, 'active'),
+			where: and(
+				eq(matches.status, 'active'),
+				sql`EXISTS (SELECT 1 FROM match_players WHERE match_id = ${matches.id} AND player_id = ${playerProfile.id})`,
+			),
 		});
 
 		if (activeMatch) throw new Error('There is already an active match');
 
 		const newMatch = db.transaction((tx) => {
-			const [match] = tx
+			const match = tx
 				.insert(matches)
 				.values({
 					status: 'active',
 				})
-				.returning();
+				.returning()
+				.get();
 
 			const matchPlayersData = data.playerIds.map((playerId) => ({
 				matchId: match.id,
@@ -181,6 +191,17 @@ const endMatch = createServerFn({ method: 'POST' })
 
 		if (!session?.user.id) throw new Error('Not authenticated');
 
+		if (data.status === 'abandoned') {
+			db.update(matches)
+				.set({
+					status: 'abandoned',
+					finishedAt: new Date(),
+				})
+				.where(eq(matches.id, data.matchId))
+				.run();
+			return { success: true };
+		}
+
 		db.transaction((tx) => {
 			tx.update(matches)
 				.set({
@@ -191,7 +212,7 @@ const endMatch = createServerFn({ method: 'POST' })
 				.where(eq(matches.id, data.matchId))
 				.run();
 
-			if (data.playerScores && data.status !== 'abandoned') {
+			if (data.playerScores) {
 				for (const ps of data.playerScores) {
 					tx.update(schema.matchPlayers)
 						.set({ score: ps.score })
@@ -241,6 +262,7 @@ function PlayerName({ name, isMe }: { name: string; isMe: boolean }) {
 function MatchesPage() {
 	const { currentMatch, previousMatches, players, currentPlayer } =
 		Route.useLoaderData();
+	const router = useRouter();
 	const [opened, { open, close }] = useDisclosure(false);
 	const [endMatchOpened, { open: openEndMatch, close: closeEndMatch }] =
 		useDisclosure(false);
@@ -254,8 +276,9 @@ function MatchesPage() {
 		setCreating(true);
 		try {
 			await createMatch({ data: { playerIds: selectedPlayerIds } });
+			setSelectedPlayerIds([]);
 			close();
-			window.location.reload();
+			await router.invalidate();
 		} catch (error) {
 			alert(error instanceof Error ? error.message : 'Failed to create match');
 		} finally {
@@ -298,7 +321,7 @@ function MatchesPage() {
 				},
 			});
 			closeEndMatch();
-			window.location.reload();
+			await router.invalidate();
 		} catch (error) {
 			alert(error instanceof Error ? error.message : 'Failed to end match');
 		} finally {
@@ -316,13 +339,18 @@ function MatchesPage() {
 					status: 'abandoned',
 				},
 			});
-			window.location.reload();
+			await router.invalidate();
 		} catch (error) {
 			alert(error instanceof Error ? error.message : 'Failed to abandon match');
 		}
 	};
 
-	const playerOptions = players.map((p) => ({
+	const handleCloseCreateModal = () => {
+		setSelectedPlayerIds([]);
+		close();
+	};
+
+	const playerOptions = (players || []).map((p) => ({
 		value: p.id,
 		label: p.displayName,
 	}));
@@ -432,7 +460,11 @@ function MatchesPage() {
 				)}
 			</Paper>
 
-			<Modal opened={opened} onClose={close} title="Create New Match">
+			<Modal
+				opened={opened}
+				onClose={handleCloseCreateModal}
+				title="Create New Match"
+			>
 				<Stack gap="md">
 					{currentMatch && (
 						<Alert
@@ -457,7 +489,7 @@ function MatchesPage() {
 					/>
 
 					<Group justify="flex-end" mt="md">
-						<Button variant="subtle" onClick={close}>
+						<Button variant="subtle" onClick={handleCloseCreateModal}>
 							Cancel
 						</Button>
 						<Button
