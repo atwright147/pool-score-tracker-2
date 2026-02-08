@@ -13,19 +13,16 @@ import {
 	IconLock,
 	IconLogout2,
 	IconShield,
+	IconTrophy,
 } from '@tabler/icons-react';
 import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 
 export default function Header() {
 	const [isOpen, setIsOpen] = useState(false);
-	const [_groupedExpanded, _setGroupedExpandedd] = useState<
-		Record<string, boolean>
-	>({});
 
 	return (
 		<>
-			_groupedExpanded_setGroupedExpanded
 			<AppShell.Header p="md">
 				<Group>
 					<Burger opened={isOpen} onClick={() => setIsOpen(true)} />
@@ -70,6 +67,14 @@ export default function Header() {
 						to="/friends"
 						label="Friends"
 						leftSection={<IconFriends size={20} />}
+						onClick={() => setIsOpen(false)}
+					/>
+
+					<NavLink
+						component={Link}
+						to="/matches"
+						label="Matches"
+						leftSection={<IconTrophy size={20} />}
 						onClick={() => setIsOpen(false)}
 					/>
 

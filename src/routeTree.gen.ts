@@ -15,6 +15,7 @@ import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as ProtectedProfileRouteImport } from './routes/_protected/profile'
+import { Route as ProtectedMatchesRouteImport } from './routes/_protected/matches'
 import { Route as ProtectedFriendsRouteImport } from './routes/_protected/friends'
 import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo/start.server-funcs'
@@ -54,6 +55,11 @@ const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
 const ProtectedProfileRoute = ProtectedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedMatchesRoute = ProtectedMatchesRouteImport.update({
+  id: '/matches',
+  path: '/matches',
   getParentRoute: () => ProtectedRoute,
 } as any)
 const ProtectedFriendsRoute = ProtectedFriendsRouteImport.update({
@@ -118,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/logout': typeof LogoutRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/friends': typeof ProtectedFriendsRoute
+  '/matches': typeof ProtectedMatchesRoute
   '/profile': typeof ProtectedProfileRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -136,6 +143,7 @@ export interface FileRoutesByTo {
   '/logout': typeof LogoutRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/friends': typeof ProtectedFriendsRoute
+  '/matches': typeof ProtectedMatchesRoute
   '/profile': typeof ProtectedProfileRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -156,6 +164,7 @@ export interface FileRoutesById {
   '/logout': typeof LogoutRoute
   '/_protected/dashboard': typeof ProtectedDashboardRoute
   '/_protected/friends': typeof ProtectedFriendsRoute
+  '/_protected/matches': typeof ProtectedMatchesRoute
   '/_protected/profile': typeof ProtectedProfileRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/logout'
     | '/dashboard'
     | '/friends'
+    | '/matches'
     | '/profile'
     | '/demo/tanstack-query'
     | '/api/auth/$'
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/logout'
     | '/dashboard'
     | '/friends'
+    | '/matches'
     | '/profile'
     | '/demo/tanstack-query'
     | '/api/auth/$'
@@ -213,6 +224,7 @@ export interface FileRouteTypes {
     | '/logout'
     | '/_protected/dashboard'
     | '/_protected/friends'
+    | '/_protected/matches'
     | '/_protected/profile'
     | '/demo/tanstack-query'
     | '/api/auth/$'
@@ -285,6 +297,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProtectedProfileRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/matches': {
+      id: '/_protected/matches'
+      path: '/matches'
+      fullPath: '/matches'
+      preLoaderRoute: typeof ProtectedMatchesRouteImport
       parentRoute: typeof ProtectedRoute
     }
     '/_protected/friends': {
@@ -370,12 +389,14 @@ declare module '@tanstack/react-router' {
 interface ProtectedRouteChildren {
   ProtectedDashboardRoute: typeof ProtectedDashboardRoute
   ProtectedFriendsRoute: typeof ProtectedFriendsRoute
+  ProtectedMatchesRoute: typeof ProtectedMatchesRoute
   ProtectedProfileRoute: typeof ProtectedProfileRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedDashboardRoute: ProtectedDashboardRoute,
   ProtectedFriendsRoute: ProtectedFriendsRoute,
+  ProtectedMatchesRoute: ProtectedMatchesRoute,
   ProtectedProfileRoute: ProtectedProfileRoute,
 }
 

@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { integer, sqliteTable, text, unique } from 'drizzle-orm/sqlite-core';
 
 //#region Better Auth tables
 export const user = sqliteTable('user', {
@@ -100,15 +100,7 @@ export const friendship = sqliteTable('friendship', {
 // Matches between players
 export const matches = sqliteTable('matches', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
-	playerOneId: text('player_one_id')
-		.notNull()
-		.references(() => player.id),
-	playerTwoId: text('player_two_id')
-		.notNull()
-		.references(() => player.id),
 	winnerId: text('winner_id').references(() => player.id),
-	playerOneScore: integer('player_one_score').default(0),
-	playerTwoScore: integer('player_two_score').default(0),
 	status: text('status')
 		.$type<'active' | 'finished' | 'abandoned'>()
 		.notNull()
@@ -119,6 +111,66 @@ export const matches = sqliteTable('matches', {
 	finishedAt: integer('finished_at', { mode: 'timestamp' }),
 });
 
+// Join table for match players
+export const matchPlayers = sqliteTable(
+	'match_players',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		matchId: integer('match_id')
+			.notNull()
+			.references(() => matches.id, { onDelete: 'cascade' }),
+		playerId: text('player_id')
+			.notNull()
+			.references(() => player.id, { onDelete: 'cascade' }),
+		score: integer('score').default(0),
+		createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(
+			() => new Date(),
+		),
+	},
+	(t) => ({
+		unq: unique().on(t.matchId, t.playerId),
+	}),
+);
+
+// Individual games within a match
+export const games = sqliteTable('games', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	matchId: integer('match_id')
+		.notNull()
+		.references(() => matches.id, { onDelete: 'cascade' }),
+	winnerId: text('winner_id').references(() => player.id),
+	gameNumber: integer('game_number').notNull(), // Track game order in match
+	status: text('status')
+		.$type<'active' | 'finished'>()
+		.notNull()
+		.default('active'),
+	createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(
+		() => new Date(),
+	),
+	finishedAt: integer('finished_at', { mode: 'timestamp' }),
+});
+
+// Join table for game players/participants
+export const gamePlayers = sqliteTable(
+	'game_players',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		gameId: integer('game_id')
+			.notNull()
+			.references(() => games.id, { onDelete: 'cascade' }),
+		playerId: text('player_id')
+			.notNull()
+			.references(() => player.id, { onDelete: 'cascade' }),
+		score: integer('score').default(0),
+		createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(
+			() => new Date(),
+		),
+	},
+	(t) => ({
+		unq: unique().on(t.gameId, t.playerId),
+	}),
+);
+
 // Relations
 export const playerRelations = relations(player, ({ one, many }) => ({
 	user: one(user, {
@@ -127,9 +179,10 @@ export const playerRelations = relations(player, ({ one, many }) => ({
 	}),
 	requestedFriendships: many(friendship, { relationName: 'requester' }),
 	receivedFriendships: many(friendship, { relationName: 'addressee' }),
-	matchesAsPlayerOne: many(matches, { relationName: 'playerOne' }),
-	matchesAsPlayerTwo: many(matches, { relationName: 'playerTwo' }),
+	matchPlayers: many(matchPlayers),
+	gamePlayers: many(gamePlayers),
 	matchesWon: many(matches, { relationName: 'winner' }),
+	gamesWon: many(games, { relationName: 'winner' }),
 }));
 
 export const friendshipRelations = relations(friendship, ({ one }) => ({
@@ -145,20 +198,47 @@ export const friendshipRelations = relations(friendship, ({ one }) => ({
 	}),
 }));
 
-export const matchesRelations = relations(matches, ({ one }) => ({
-	playerOne: one(player, {
-		fields: [matches.playerOneId],
-		references: [player.id],
-		relationName: 'playerOne',
-	}),
-	playerTwo: one(player, {
-		fields: [matches.playerTwoId],
-		references: [player.id],
-		relationName: 'playerTwo',
-	}),
+export const matchesRelations = relations(matches, ({ one, many }) => ({
+	matchPlayers: many(matchPlayers),
 	winner: one(player, {
 		fields: [matches.winnerId],
 		references: [player.id],
 		relationName: 'winner',
+	}),
+	games: many(games),
+}));
+
+export const matchPlayersRelations = relations(matchPlayers, ({ one }) => ({
+	match: one(matches, {
+		fields: [matchPlayers.matchId],
+		references: [matches.id],
+	}),
+	player: one(player, {
+		fields: [matchPlayers.playerId],
+		references: [player.id],
+	}),
+}));
+
+export const gamesRelations = relations(games, ({ one, many }) => ({
+	match: one(matches, {
+		fields: [games.matchId],
+		references: [matches.id],
+	}),
+	winner: one(player, {
+		fields: [games.winnerId],
+		references: [player.id],
+		relationName: 'winner',
+	}),
+	gamePlayers: many(gamePlayers),
+}));
+
+export const gamePlayersRelations = relations(gamePlayers, ({ one }) => ({
+	game: one(games, {
+		fields: [gamePlayers.gameId],
+		references: [games.id],
+	}),
+	player: one(player, {
+		fields: [gamePlayers.playerId],
+		references: [player.id],
 	}),
 }));

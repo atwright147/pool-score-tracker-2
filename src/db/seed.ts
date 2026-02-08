@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { hashPassword } from 'better-auth/crypto';
+import { eq } from 'drizzle-orm';
 import { db } from './db';
 import * as schema from './schema';
 
@@ -7,6 +8,9 @@ async function main() {
 	console.log('🌱 Seeding database...');
 
 	// Clear existing data (in reverse order of dependencies)
+	await db.delete(schema.gamePlayers);
+	await db.delete(schema.games);
+	await db.delete(schema.matchPlayers);
 	await db.delete(schema.matches);
 	await db.delete(schema.friendship);
 	await db.delete(schema.player);
@@ -213,43 +217,98 @@ async function main() {
 	);
 
 	// Create matches
-	const matches = [];
 	for (let i = 0; i < 20; i++) {
-		const playerOne = faker.helpers.arrayElement(players);
-		const playerTwo = faker.helpers.arrayElement(
-			players.filter((p) => p.id !== playerOne.id),
-		);
+		const playerCount = faker.number.int({ min: 2, max: 8 });
+		const selectedPlayers = faker.helpers.arrayElements(players, playerCount);
 
 		const isFinished = faker.datatype.boolean({ probability: 0.7 });
-		const playerOneScore = isFinished
-			? faker.number.int({ min: 0, max: 15 })
-			: faker.number.int({ min: 0, max: 5 });
-		const playerTwoScore = isFinished
-			? faker.number.int({ min: 0, max: 15 })
-			: faker.number.int({ min: 0, max: 5 });
-
-		let winnerId = null;
 		let status: 'active' | 'finished' | 'abandoned' = 'active';
-
 		if (isFinished) {
-			status = 'finished';
-			winnerId = playerOneScore > playerTwoScore ? playerOne.id : playerTwo.id;
+			status = faker.helpers.arrayElement(['finished', 'abandoned']);
 		}
 
-		matches.push({
-			playerOneId: playerOne.id,
-			playerTwoId: playerTwo.id,
-			winnerId,
-			playerOneScore,
-			playerTwoScore,
-			status,
-			createdAt: faker.date.past({ years: 1 }),
-			finishedAt: isFinished ? faker.date.recent({ days: 30 }) : null,
-		});
+		const [match] = await db
+			.insert(schema.matches)
+			.values({
+				status,
+				createdAt: faker.date.past({ years: 1 }),
+				finishedAt:
+					status === 'finished' ? faker.date.recent({ days: 30 }) : null,
+			})
+			.returning();
+
+		const matchPlayersData = [];
+		let maxMatchScore = -1;
+		let matchWinnerId = null;
+
+		for (const p of selectedPlayers) {
+			const score =
+				status === 'finished' ? faker.number.int({ min: 0, max: 10 }) : 0;
+			if (score > maxMatchScore) {
+				maxMatchScore = score;
+				matchWinnerId = p.id;
+			}
+			matchPlayersData.push({
+				matchId: match.id,
+				playerId: p.id,
+				score,
+			});
+		}
+
+		await db.insert(schema.matchPlayers).values(matchPlayersData);
+		if (status === 'finished' && matchWinnerId) {
+			await db
+				.update(schema.matches)
+				.set({ winnerId: matchWinnerId })
+				.where(eq(schema.matches.id, match.id));
+		}
+
+		// Create some games for this match
+		if (status !== 'abandoned') {
+			const gameCount = faker.number.int({ min: 1, max: 5 });
+			for (let g = 0; g < gameCount; g++) {
+				const gameFinished = status === 'finished' || faker.datatype.boolean();
+				const [game] = await db
+					.insert(schema.games)
+					.values({
+						matchId: match.id,
+						gameNumber: g + 1,
+						status: gameFinished ? 'finished' : 'active',
+						createdAt: match.createdAt,
+					})
+					.returning();
+
+				const gamePlayersData = [];
+				let maxGameScore = -1;
+				let gameWinnerId = null;
+
+				for (const p of selectedPlayers) {
+					const score = gameFinished
+						? faker.number.int({ min: 0, max: 15 })
+						: 0;
+					if (score > maxGameScore) {
+						maxGameScore = score;
+						gameWinnerId = p.id;
+					}
+					gamePlayersData.push({
+						gameId: game.id,
+						playerId: p.id,
+						score,
+					});
+				}
+
+				await db.insert(schema.gamePlayers).values(gamePlayersData);
+				if (gameFinished && gameWinnerId) {
+					await db
+						.update(schema.games)
+						.set({ winnerId: gameWinnerId })
+						.where(eq(schema.games.id, game.id));
+				}
+			}
+		}
 	}
 
-	await db.insert(schema.matches).values(matches);
-	console.log(`✓ Created ${matches.length} matches`);
+	console.log('✓ Created 20 matches with varying player counts');
 
 	console.log('✅ Seeding complete!');
 }
