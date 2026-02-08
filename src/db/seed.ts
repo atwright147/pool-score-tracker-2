@@ -217,14 +217,33 @@ async function main() {
 	);
 
 	// Create matches
+	const playersWithActiveMatch = new Set<string>();
+
 	for (let i = 0; i < 20; i++) {
 		const playerCount = faker.number.int({ min: 2, max: 8 });
-		const selectedPlayers = faker.helpers.arrayElements(players, playerCount);
+		let selectedPlayers = faker.helpers.arrayElements(players, playerCount);
 
-		const isFinished = faker.datatype.boolean({ probability: 0.7 });
-		let status: 'active' | 'finished' | 'abandoned' = 'active';
+		const isFinished = faker.datatype.boolean({ probability: 0.8 });
+		let status: 'active' | 'finished' | 'abandoned' = 'finished';
+
 		if (isFinished) {
 			status = faker.helpers.arrayElement(['finished', 'abandoned']);
+		} else {
+			// Only allow players who are not currently in an active match to start a new active one
+			const availablePlayers = selectedPlayers.filter(
+				(p) => !playersWithActiveMatch.has(p.id),
+			);
+
+			if (availablePlayers.length >= 2) {
+				status = 'active';
+				selectedPlayers = availablePlayers;
+				for (const p of selectedPlayers) {
+					playersWithActiveMatch.add(p.id);
+				}
+			} else {
+				// Fallback to finished if we couldn't find enough free players for an active match
+				status = 'finished';
+			}
 		}
 
 		const [match] = await db
