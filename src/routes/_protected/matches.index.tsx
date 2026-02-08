@@ -369,7 +369,7 @@ function MatchesPage() {
 						<Group justify="space-between">
 							<Anchor
 								component={Link}
-								to="/matches/$matchId"
+								to='/matches/$matchId'
 								params={{ matchId: currentMatch.id.toString() }}
 								underline='never'
 								c='inherit'
@@ -426,17 +426,20 @@ function MatchesPage() {
 						</Table.Thead>
 						<Table.Tbody>
 							{previousMatches.map((match) => (
-								<Table.Tr key={match.id}>
+								<Table.Tr
+									key={match.id}
+									onClick={() =>
+										router.navigate({
+											to: '/matches/$matchId',
+											params: { matchId: match.id.toString() },
+										})
+									}
+									style={{ cursor: 'pointer' }}
+								>
 									<Table.Td>
-										<Anchor
-											component={Link}
-											to="/matches/$matchId"
-											params={{ matchId: match.id.toString() }}
-										>
-											{match.createdAt
-												? new Date(match.createdAt).toLocaleDateString()
-												: 'N/A'}
-										</Anchor>
+										{match.createdAt
+											? new Date(match.createdAt).toLocaleDateString()
+											: 'N/A'}
 									</Table.Td>
 									<Table.Td>
 										<Group gap='xs'>
