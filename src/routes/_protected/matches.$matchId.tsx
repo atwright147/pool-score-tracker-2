@@ -3,10 +3,13 @@ import {
 	Badge,
 	Breadcrumbs,
 	Button,
+	Card,
+	Divider,
 	Group,
 	Modal,
 	NumberInput,
 	Paper,
+	Select,
 	Stack,
 	Text,
 	Title,
@@ -51,8 +54,8 @@ const getMatch = createServerFn({ method: 'GET' })
 					},
 				},
 			},
-		})
-	})
+		});
+	});
 
 const getCurrentPlayer = createServerFn({ method: 'GET' }).handler(async () => {
 	const { auth } = await import('~/lib/auth');
@@ -63,7 +66,7 @@ const getCurrentPlayer = createServerFn({ method: 'GET' }).handler(async () => {
 
 	return await db.query.player.findFirst({
 		where: (player, { eq }) => eq(player.userId, session.user.id),
-	})
+	});
 });
 
 const endMatch = createServerFn({ method: 'POST' })
@@ -89,7 +92,7 @@ const endMatch = createServerFn({ method: 'POST' })
 					finishedAt: new Date(),
 				})
 				.where(eq(matches.id, data.matchId))
-				.run()
+				.run();
 			return { success: true };
 		}
 
@@ -101,7 +104,7 @@ const endMatch = createServerFn({ method: 'POST' })
 					finishedAt: new Date(),
 				})
 				.where(eq(matches.id, data.matchId))
-				.run()
+				.run();
 
 			if (data.playerScores) {
 				for (const ps of data.playerScores) {
@@ -113,13 +116,151 @@ const endMatch = createServerFn({ method: 'POST' })
 								eq(schema.matchPlayers.playerId, ps.playerId),
 							),
 						)
-						.run()
+						.run();
 				}
 			}
-		})
+		});
 
 		return { success: true };
-	})
+	});
+
+const startGame = createServerFn({ method: 'POST' })
+	.inputValidator(
+		(data: { matchId: number; player1Id: string; player2Id: string }) => data,
+	)
+	.handler(async ({ data }) => {
+		const { auth } = await import('~/lib/auth');
+		const headers = getRequestHeaders();
+		const session = await auth.api.getSession({ headers });
+
+		if (!session?.user.id) throw new Error('Not authenticated');
+
+		// Check if there's already an active game for this match
+		const activeGame = await db.query.games.findFirst({
+			where: (games, { and, eq }) =>
+				and(eq(games.matchId, data.matchId), eq(games.status, 'active')),
+		});
+
+		if (activeGame) throw new Error('A game is already in progress');
+
+		// Get number of existing games (read outside transaction)
+		const existingGames = await db.query.games.findMany({
+			where: eq(schema.games.matchId, data.matchId),
+		});
+
+		const gameNumber = (existingGames?.length || 0) + 1;
+
+		// Execute writes in transaction
+		return db.transaction((tx) => {
+			const [newGame] = tx
+				.insert(schema.games)
+				.values({
+					matchId: data.matchId,
+					gameNumber,
+					status: 'active',
+				})
+				.returning()
+				.all();
+
+			tx.insert(schema.gamePlayers)
+				.values([
+					{ gameId: newGame.id, playerId: data.player1Id },
+					{ gameId: newGame.id, playerId: data.player2Id },
+				])
+				.run();
+
+			return newGame;
+		});
+	});
+
+const recordGameWin = createServerFn({ method: 'POST' })
+	.inputValidator((data: { gameId: number; winnerId: string }) => data)
+	.handler(async ({ data }) => {
+		const { auth } = await import('~/lib/auth');
+		const headers = getRequestHeaders();
+		const session = await auth.api.getSession({ headers });
+
+		if (!session?.user.id) throw new Error('Not authenticated');
+
+		// Read game data outside transaction
+		const game = await db.query.games.findFirst({
+			where: eq(schema.games.id, data.gameId),
+		});
+
+		if (!game) throw new Error('Game not found');
+
+		const matchPlayer = await db.query.matchPlayers.findFirst({
+			where: and(
+				eq(schema.matchPlayers.matchId, game.matchId),
+				eq(schema.matchPlayers.playerId, data.winnerId),
+			),
+		});
+
+		const winner = await db.query.player.findFirst({
+			where: eq(schema.player.id, data.winnerId),
+		});
+
+		const gameParticipants = await db.query.gamePlayers.findMany({
+			where: eq(schema.gamePlayers.gameId, data.gameId),
+		});
+
+		// Fetch loser players data
+		const losers = await Promise.all(
+			gameParticipants
+				.filter((gp) => gp.playerId !== data.winnerId)
+				.map((gp) =>
+					db.query.player.findFirst({
+						where: eq(schema.player.id, gp.playerId),
+					}),
+				),
+		);
+
+		// Execute writes in transaction
+		return db.transaction((tx) => {
+			// 1. Update the game with winner and status
+			tx.update(schema.games)
+				.set({
+					winnerId: data.winnerId,
+					status: 'finished',
+					finishedAt: new Date(),
+				})
+				.where(eq(schema.games.id, data.gameId))
+				.run();
+
+			// 3. Update the match player score (incrementing it)
+			if (matchPlayer) {
+				tx.update(schema.matchPlayers)
+					.set({ score: (matchPlayer.score || 0) + 1 })
+					.where(eq(schema.matchPlayers.id, matchPlayer.id))
+					.run();
+			}
+
+			// Update overall player stats
+			if (winner) {
+				tx.update(schema.player)
+					.set({
+						gamesWon: winner.gamesWon + 1,
+						gamesPlayed: winner.gamesPlayed + 1,
+					})
+					.where(eq(schema.player.id, data.winnerId))
+					.run();
+			}
+
+			for (const gp of gameParticipants) {
+				if (gp.playerId !== data.winnerId) {
+					const loser = losers.find((p) => p?.id === gp.playerId);
+					if (loser) {
+						tx.update(schema.player)
+							.set({ gamesPlayed: loser.gamesPlayed + 1 })
+							.where(eq(schema.player.id, gp.playerId))
+							.run();
+					}
+				}
+			}
+
+			return { success: true };
+		});
+	});
 
 export const Route = createFileRoute('/_protected/matches/$matchId')({
 	component: MatchDetailsPage,
@@ -130,7 +271,7 @@ export const Route = createFileRoute('/_protected/matches/$matchId')({
 		const [match, currentPlayer] = await Promise.all([
 			getMatch({ data: matchId }),
 			getCurrentPlayer(),
-		])
+		]);
 
 		if (!match) throw new Error('Match not found');
 
@@ -150,7 +291,7 @@ function PlayerName({ name, isMe }: { name: string; isMe: boolean }) {
 				</Badge>
 			)}
 		</Group>
-	)
+	);
 }
 
 function MatchDetailsPage() {
@@ -161,6 +302,16 @@ function MatchDetailsPage() {
 	const [matchScores, setMatchScores] = useState<Record<string, number>>({});
 	const [ending, setEnding] = useState(false);
 
+	const [p1, setP1] = useState<string | null>(null);
+	const [p2, setP2] = useState<string | null>(null);
+	const [startingGame, setStartingGame] = useState(false);
+	const [recordingWin, setRecordingWin] = useState(false);
+
+	const activeGame = match.games?.find((g) => g.status === 'active');
+	const isParticipant = match.matchPlayers?.some(
+		(mp) => mp.playerId === currentPlayer?.id,
+	);
+
 	// Initialize scores from match data if available
 	useEffect(() => {
 		if (match.matchPlayers) {
@@ -169,8 +320,44 @@ function MatchDetailsPage() {
 				scores[mp.playerId] = mp.score || 0;
 			}
 			setMatchScores(scores);
+
+			if (match.matchPlayers.length === 2 && !p1 && !p2) {
+				setP1(match.matchPlayers[0].playerId);
+				setP2(match.matchPlayers[1].playerId);
+			}
 		}
-	}, [match]);
+	}, [match, p1, p2]);
+
+	const handleStartGame = async () => {
+		if (!p1 || !p2 || p1 === p2) {
+			alert('Please select two different players');
+			return;
+		}
+		setStartingGame(true);
+		try {
+			await startGame({
+				data: { matchId: match.id, player1Id: p1, player2Id: p2 },
+			});
+			await router.invalidate();
+		} catch (error) {
+			alert(error instanceof Error ? error.message : 'Failed to start game');
+		} finally {
+			setStartingGame(false);
+		}
+	};
+
+	const handleRecordWin = async (winnerId: string) => {
+		if (!activeGame) return;
+		setRecordingWin(true);
+		try {
+			await recordGameWin({ data: { gameId: activeGame.id, winnerId } });
+			await router.invalidate();
+		} catch (error) {
+			alert(error instanceof Error ? error.message : 'Failed to record win');
+		} finally {
+			setRecordingWin(false);
+		}
+	};
 
 	const handleConfirmEndMatch = async () => {
 		setEnding(true);
@@ -180,12 +367,12 @@ function MatchDetailsPage() {
 			const playerScores = Object.entries(matchScores).map(
 				([playerId, score]) => {
 					if (score > maxScore) {
-						maxScore = score
+						maxScore = score;
 						winnerId = playerId;
 					}
 					return { playerId, score };
 				},
-			)
+			);
 
 			await endMatch({
 				data: {
@@ -194,7 +381,7 @@ function MatchDetailsPage() {
 					playerScores,
 					status: 'finished',
 				},
-			})
+			});
 			closeEndMatch();
 			await router.invalidate();
 		} catch (error) {
@@ -202,7 +389,7 @@ function MatchDetailsPage() {
 		} finally {
 			setEnding(false);
 		}
-	}
+	};
 
 	const handleAbandonMatch = async () => {
 		if (!confirm('Are you sure you want to abandon this match?')) return;
@@ -212,12 +399,12 @@ function MatchDetailsPage() {
 					matchId: match.id,
 					status: 'abandoned',
 				},
-			})
+			});
 			await router.invalidate();
 		} catch (error) {
 			alert(error instanceof Error ? error.message : 'Failed to abandon match');
 		}
-	}
+	};
 
 	return (
 		<Stack gap="xl">
@@ -252,11 +439,11 @@ function MatchDetailsPage() {
 						</Badge>
 					</Group>
 
-					{match.status === 'active' && (
+					{match.status === 'active' && isParticipant && (
 						<Group>
 							<Button
-								variant='outline'
-								color='red'
+								variant="outline"
+								color="red"
 								onClick={handleAbandonMatch}
 							>
 								Abandon
@@ -288,6 +475,110 @@ function MatchDetailsPage() {
 					</Group>
 				</Stack>
 			</Paper>
+
+			{match.status === 'active' && isParticipant && (
+				<Card withBorder shadow="sm" p="md">
+					<Stack gap="md">
+						<Title order={3}>
+							{activeGame ? `Game #${activeGame.gameNumber}` : 'Start New Game'}
+						</Title>
+
+						{activeGame ? (
+							<Stack gap="md">
+								<Text>Who won this game?</Text>
+								<Group>
+									{activeGame.gamePlayers.map((gp) => (
+										<Button
+											key={gp.playerId}
+											onClick={() => handleRecordWin(gp.playerId)}
+											loading={recordingWin}
+											variant={
+												currentPlayer?.id === gp.playerId ? 'filled' : 'outline'
+											}
+											flex={1}
+										>
+											{gp.player.displayName}{' '}
+											{currentPlayer?.id === gp.playerId ? '(You)' : ''} Won
+										</Button>
+									))}
+								</Group>
+							</Stack>
+						) : (
+							<Stack gap="md">
+								<Group grow>
+									<Select
+										label="Player 1"
+										placeholder="Select player"
+										value={p1}
+										onChange={setP1}
+										data={match.matchPlayers?.map((mp) => ({
+											value: mp.playerId,
+											label: mp.player.displayName,
+										}))}
+									/>
+									<Select
+										label="Player 2"
+										placeholder="Select player"
+										value={p2}
+										onChange={setP2}
+										data={match.matchPlayers?.map((mp) => ({
+											value: mp.playerId,
+											label: mp.player.displayName,
+										}))}
+									/>
+								</Group>
+								<Button
+									onClick={handleStartGame}
+									loading={startingGame}
+									disabled={!p1 || !p2 || p1 === p2}
+								>
+									Start Game
+								</Button>
+							</Stack>
+						)}
+					</Stack>
+				</Card>
+			)}
+
+			{match.games && match.games.length > 0 && (
+				<Paper withBorder p="md" shadow="sm">
+					<Stack gap="md">
+						<Title order={3}>Game History</Title>
+						<Divider />
+						<Stack gap="xs">
+							{match.games
+								.filter((g) => g.status === 'finished')
+								.sort((a, b) => b.gameNumber - a.gameNumber)
+								.map((game) => (
+									<Group
+										key={game.id}
+										justify="space-between"
+										p="xs"
+										style={{
+											borderBottom:
+												'1px solid var(--mantine-color-default-border)',
+										}}
+									>
+										<Text fw={500}>Game #{game.gameNumber}</Text>
+										<Group gap="xs">
+											<Text size="sm">Winner:</Text>
+											<Badge color="green" variant="light">
+												{game.gamePlayers.find(
+													(gp) => gp.playerId === game.winnerId,
+												)?.player.displayName || 'Unknown'}
+											</Badge>
+										</Group>
+										<Text size="xs" c="dimmed">
+											{game.finishedAt
+												? new Date(game.finishedAt).toLocaleTimeString()
+												: ''}
+										</Text>
+									</Group>
+								))}
+						</Stack>
+					</Stack>
+				</Paper>
+			)}
 
 			<Modal
 				opened={endMatchOpened}
@@ -323,5 +614,5 @@ function MatchDetailsPage() {
 				</Stack>
 			</Modal>
 		</Stack>
-	)
+	);
 }
