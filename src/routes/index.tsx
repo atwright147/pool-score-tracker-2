@@ -6,7 +6,9 @@ import {
 	IconSparkles,
 	IconWaveSine,
 } from '@tabler/icons-react';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createServerFn } from '@tanstack/react-start';
+import { getRequestHeaders } from '@tanstack/react-start/server';
 
 interface Feature {
 	id: number;
@@ -15,7 +17,22 @@ interface Feature {
 	description: string;
 }
 
-export const Route = createFileRoute('/')({ component: App });
+const getSession = createServerFn({ method: 'GET' }).handler(async () => {
+	const { auth } = await import('~/lib/auth');
+	const headers = getRequestHeaders();
+	const session = await auth.api.getSession({ headers });
+	return session;
+});
+
+export const Route = createFileRoute('/')({
+	component: App,
+	loader: async () => {
+		const session = await getSession();
+		if (session) {
+			throw redirect({ to: '/_protected/dashboard' });
+		}
+	},
+});
 
 function App() {
 	const features: Feature[] = [
