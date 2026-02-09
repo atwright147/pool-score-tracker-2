@@ -492,9 +492,7 @@ function MatchDetailsPage() {
 											key={gp.playerId}
 											onClick={() => handleRecordWin(gp.playerId)}
 											loading={recordingWin}
-											variant={
-												currentPlayer?.id === gp.playerId ? 'filled' : 'outline'
-											}
+											variant="outline"
 											flex={1}
 										>
 											{gp.player.displayName}{' '}
