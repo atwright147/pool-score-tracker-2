@@ -538,7 +538,7 @@ function MatchDetailsPage() {
 				</Card>
 			)}
 
-			{match.games && match.games.length > 0 && (
+			{match.games.some((g) => g.status === 'finished') && (
 				<Paper withBorder p="md" shadow="sm">
 					<Stack gap="md">
 						<Title order={3}>Game History</Title>
