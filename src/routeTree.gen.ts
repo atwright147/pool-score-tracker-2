@@ -15,6 +15,7 @@ import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as ProtectedProfileRouteImport } from './routes/_protected/profile'
+import { Route as ProtectedInsightsRouteImport } from './routes/_protected/insights'
 import { Route as ProtectedFriendsRouteImport } from './routes/_protected/friends'
 import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
 import { Route as ProtectedMatchesIndexRouteImport } from './routes/_protected/matches.index'
@@ -56,6 +57,11 @@ const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
 const ProtectedProfileRoute = ProtectedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedInsightsRoute = ProtectedInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
   getParentRoute: () => ProtectedRoute,
 } as any)
 const ProtectedFriendsRoute = ProtectedFriendsRouteImport.update({
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/logout': typeof LogoutRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/friends': typeof ProtectedFriendsRoute
+  '/insights': typeof ProtectedInsightsRoute
   '/profile': typeof ProtectedProfileRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/matches/$matchId': typeof ProtectedMatchesMatchIdRoute
@@ -150,6 +157,7 @@ export interface FileRoutesByTo {
   '/logout': typeof LogoutRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/friends': typeof ProtectedFriendsRoute
+  '/insights': typeof ProtectedInsightsRoute
   '/profile': typeof ProtectedProfileRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/matches/$matchId': typeof ProtectedMatchesMatchIdRoute
@@ -172,6 +180,7 @@ export interface FileRoutesById {
   '/logout': typeof LogoutRoute
   '/_protected/dashboard': typeof ProtectedDashboardRoute
   '/_protected/friends': typeof ProtectedFriendsRoute
+  '/_protected/insights': typeof ProtectedInsightsRoute
   '/_protected/profile': typeof ProtectedProfileRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/_protected/matches/$matchId': typeof ProtectedMatchesMatchIdRoute
@@ -194,6 +203,7 @@ export interface FileRouteTypes {
     | '/logout'
     | '/dashboard'
     | '/friends'
+    | '/insights'
     | '/profile'
     | '/demo/tanstack-query'
     | '/matches/$matchId'
@@ -214,6 +224,7 @@ export interface FileRouteTypes {
     | '/logout'
     | '/dashboard'
     | '/friends'
+    | '/insights'
     | '/profile'
     | '/demo/tanstack-query'
     | '/matches/$matchId'
@@ -235,6 +246,7 @@ export interface FileRouteTypes {
     | '/logout'
     | '/_protected/dashboard'
     | '/_protected/friends'
+    | '/_protected/insights'
     | '/_protected/profile'
     | '/demo/tanstack-query'
     | '/_protected/matches/$matchId'
@@ -309,6 +321,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProtectedProfileRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/insights': {
+      id: '/_protected/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof ProtectedInsightsRouteImport
       parentRoute: typeof ProtectedRoute
     }
     '/_protected/friends': {
@@ -408,6 +427,7 @@ declare module '@tanstack/react-router' {
 interface ProtectedRouteChildren {
   ProtectedDashboardRoute: typeof ProtectedDashboardRoute
   ProtectedFriendsRoute: typeof ProtectedFriendsRoute
+  ProtectedInsightsRoute: typeof ProtectedInsightsRoute
   ProtectedProfileRoute: typeof ProtectedProfileRoute
   ProtectedMatchesMatchIdRoute: typeof ProtectedMatchesMatchIdRoute
   ProtectedMatchesIndexRoute: typeof ProtectedMatchesIndexRoute
@@ -416,6 +436,7 @@ interface ProtectedRouteChildren {
 const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedDashboardRoute: ProtectedDashboardRoute,
   ProtectedFriendsRoute: ProtectedFriendsRoute,
+  ProtectedInsightsRoute: ProtectedInsightsRoute,
   ProtectedProfileRoute: ProtectedProfileRoute,
   ProtectedMatchesMatchIdRoute: ProtectedMatchesMatchIdRoute,
   ProtectedMatchesIndexRoute: ProtectedMatchesIndexRoute,

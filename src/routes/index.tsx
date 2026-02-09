@@ -29,7 +29,7 @@ export const Route = createFileRoute('/')({
 	loader: async () => {
 		const session = await getSession();
 		if (session) {
-			throw redirect({ to: '/_protected/dashboard' });
+			throw redirect({ to: '/dashboard' });
 		}
 	},
 });

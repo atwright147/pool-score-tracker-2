@@ -272,12 +272,20 @@ function DashboardPage() {
 				<Group gap="md">
 					<Button
 						component={Link}
-						to="/_protected/matches"
+						to="/matches"
 						leftSection={<IconDice6 size={18} />}
 					>
 						New Match
 					</Button>
-					<Button component={Link} to="/_protected/profile" variant="light">
+					<Button
+						component={Link}
+						to="/insights"
+						variant="light"
+						leftSection={<IconTrendingUp size={18} />}
+					>
+						Insights
+					</Button>
+					<Button component={Link} to="/profile" variant="light">
 						Profile
 					</Button>
 				</Group>
@@ -352,7 +360,7 @@ function DashboardPage() {
 						</Stack>
 						<Button
 							component={Link}
-							to={`/_protected/matches/${initialData.currentMatch.id}`}
+							to={`/matches/${initialData.currentMatch.id}`}
 						>
 							Continue Match
 						</Button>
@@ -420,7 +428,7 @@ function DashboardPage() {
 					<Title order={2}>Recent Matches</Title>
 					<Button
 						component={Link}
-						to="/_protected/matches"
+						to="/matches"
 						variant="subtle"
 						rightSection={<IconHistory size={16} />}
 					>
@@ -459,7 +467,7 @@ function DashboardPage() {
 											style={{ cursor: 'pointer' }}
 											onClick={() =>
 												_router.navigate({
-													to: `/_protected/matches/${match.id}`,
+													to: `/matches/${match.id}`,
 												})
 											}
 										>
