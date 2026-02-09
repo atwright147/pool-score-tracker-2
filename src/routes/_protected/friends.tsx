@@ -508,37 +508,41 @@ function FriendsPage() {
 								Search Results
 							</Title>
 							<Table.ScrollContainer minWidth={500}>
-							<Table striped highlightOnHover className={styles.table}>
-								<Table.Thead>
-									<Table.Tr>
-										<Table.Th>Name</Table.Th>
-										<Table.Th>Email</Table.Th>
-										<Table.Th>Skill Level</Table.Th>
-										<Table.Th>Games Played</Table.Th>
-										<Table.Th>Games Won</Table.Th>
-										<Table.Th>Win Rate</Table.Th>
-									</Table.Tr>
-								</Table.Thead>
-								<Table.Tbody>
-									{searchResults.map((player) => (
-										<Table.Tr
-											key={player.id}
-											onClick={() => handleTableOnClick(player)}
-										>
-											<Table.Td fw={600}>{player.displayName}</Table.Td>
-											<Table.Td>{player.email}</Table.Td>
-											<Table.Td>{player.skillLevel ?? 'N/A'}</Table.Td>
-											<Table.Td>{player.gamesPlayed}</Table.Td>
-											<Table.Td>{player.gamesWon}</Table.Td>
-											<Table.Td>
-												{player.gamesPlayed > 0
-													? `${Math.round((player.gamesWon / player.gamesPlayed) * 100)}%`
-													: 'N/A'}
-											</Table.Td>
+								<Table striped highlightOnHover className={styles.table}>
+									<Table.Thead>
+										<Table.Tr>
+											<Table.Th>Name</Table.Th>
+											<Table.Th>Email</Table.Th>
+											<Table.Th>Skill Level</Table.Th>
+											<Table.Th>Games Played</Table.Th>
+											<Table.Th>Games Won</Table.Th>
+											<Table.Th>Win Rate</Table.Th>
 										</Table.Tr>
-									))}
-								</Table.Tbody>
-							</Table>
+									</Table.Thead>
+									<Table.Tbody>
+										{searchResults.map((player) => (
+											<Table.Tr
+												key={player.id}
+												onClick={() => handleTableOnClick(player)}
+											>
+												<Table.Td fw={600}>
+													<Text style={{ whiteSpace: 'nowrap' }}>
+														{player.displayName}
+													</Text>
+												</Table.Td>
+												<Table.Td>{player.email}</Table.Td>
+												<Table.Td>{player.skillLevel ?? 'N/A'}</Table.Td>
+												<Table.Td>{player.gamesPlayed}</Table.Td>
+												<Table.Td>{player.gamesWon}</Table.Td>
+												<Table.Td>
+													{player.gamesPlayed > 0
+														? `${Math.round((player.gamesWon / player.gamesPlayed) * 100)}%`
+														: 'N/A'}
+												</Table.Td>
+											</Table.Tr>
+										))}
+									</Table.Tbody>
+								</Table>
 							</Table.ScrollContainer>
 						</Paper>
 					)}

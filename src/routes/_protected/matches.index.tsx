@@ -247,7 +247,7 @@ export const Route = createFileRoute('/_protected/matches/')({
 function PlayerName({ name, isMe }: { name: string; isMe: boolean }) {
 	return (
 		<Group gap="xs" wrap="nowrap" style={{ display: 'inline-flex' }}>
-			<Text span fw={isMe ? 700 : 400}>
+			<Text span fw={isMe ? 700 : 400} style={{ whiteSpace: 'nowrap' }}>
 				{name}
 			</Text>
 			{isMe && (
