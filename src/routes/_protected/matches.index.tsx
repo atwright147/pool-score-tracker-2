@@ -415,65 +415,68 @@ function MatchesPage() {
 					<Text c="dimmed">No previous matches found</Text>
 				) : (
 					<Table.ScrollContainer minWidth={500}>
-					<Table striped highlightOnHover>
-						<Table.Thead>
-							<Table.Tr>
-								<Table.Th>Date</Table.Th>
-								<Table.Th>Participants</Table.Th>
-								<Table.Th>Winner</Table.Th>
-								<Table.Th>Status</Table.Th>
-							</Table.Tr>
-						</Table.Thead>
-						<Table.Tbody>
-							{previousMatches.map((match) => (
-								<Table.Tr
-									key={match.id}
-									onClick={() =>
-										router.navigate({
-											to: `/matches/${match.id}`,
-										})
-									}
-									style={{ cursor: 'pointer' }}
-								>
-									<Table.Td>
-										{match.createdAt
-											? new Date(match.createdAt).toLocaleDateString()
-											: 'N/A'}
-									</Table.Td>
-									<Table.Td>
-										<Group gap="xs">
-											{match.matchPlayers?.map((mp, idx) => (
-												<span key={mp.playerId}>
-													<PlayerName
-														name={mp.player.displayName}
-														isMe={currentPlayer?.id === mp.playerId}
-													/>
-													{idx < (match.matchPlayers?.length || 0) - 1
-														? ', '
-														: ''}
-												</span>
-											))}
-										</Group>
-									</Table.Td>
-									<Table.Td>
-										{match.winner ? (
-											<PlayerName
-												name={match.winner.displayName}
-												isMe={currentPlayer?.id === match.winnerId}
-											/>
-										) : (
-											'N/A'
-										)}
-									</Table.Td>
-									<Table.Td>
-										<Text c={match.status === 'finished' ? 'green' : 'red'}>
-											{match.status}
-										</Text>
-									</Table.Td>
+						<Table striped highlightOnHover>
+							<Table.Thead>
+								<Table.Tr>
+									<Table.Th>Date</Table.Th>
+									<Table.Th>Participants</Table.Th>
+									<Table.Th>Winner</Table.Th>
+									<Table.Th>Status</Table.Th>
 								</Table.Tr>
-							))}
-						</Table.Tbody>
-					</Table>
+							</Table.Thead>
+							<Table.Tbody>
+								{previousMatches.map((match) => (
+									<Table.Tr
+										key={match.id}
+										onClick={() =>
+											router.navigate({
+												to: `/matches/${match.id}`,
+											})
+										}
+										style={{ cursor: 'pointer' }}
+									>
+										<Table.Td>
+											{match.createdAt
+												? new Date(match.createdAt).toLocaleDateString()
+												: 'N/A'}
+										</Table.Td>
+										<Table.Td>
+											<Group gap="xs">
+												{match.matchPlayers?.map((mp, idx) => (
+													<span key={mp.playerId}>
+														<PlayerName
+															name={mp.player.displayName}
+															isMe={currentPlayer?.id === mp.playerId}
+														/>
+														{idx < (match.matchPlayers?.length || 0) - 1
+															? ', '
+															: ''}
+													</span>
+												))}
+											</Group>
+										</Table.Td>
+										<Table.Td>
+											{match.winner ? (
+												<PlayerName
+													name={match.winner.displayName}
+													isMe={currentPlayer?.id === match.winnerId}
+												/>
+											) : (
+												'N/A'
+											)}
+										</Table.Td>
+										<Table.Td>
+											<Text
+												c={match.status === 'finished' ? 'green' : 'red'}
+												style={{ textTransform: 'capitalize' }}
+											>
+												{match.status}
+											</Text>
+										</Table.Td>
+									</Table.Tr>
+								))}
+							</Table.Tbody>
+						</Table>
 					</Table.ScrollContainer>
 				)}
 			</Paper>
