@@ -7,7 +7,9 @@ export const Route = createFileRoute('/api/auth/$')({
 		handlers: {
 			GET: async ({ request }) => {
 				try {
-					return await auth.handler(request);
+					// better-auth expects a standard Web API Request object
+					const response = await auth.handler(request);
+					return response;
 				} catch (error) {
 					console.error('Auth GET error:', error);
 					return new Response('Internal Server Error', { status: 500 });
@@ -15,7 +17,9 @@ export const Route = createFileRoute('/api/auth/$')({
 			},
 			POST: async ({ request }) => {
 				try {
-					return await auth.handler(request);
+					// better-auth expects a standard Web API Request object
+					const response = await auth.handler(request);
+					return response;
 				} catch (error) {
 					console.error('Auth POST error:', error);
 					return new Response('Internal Server Error', { status: 500 });
