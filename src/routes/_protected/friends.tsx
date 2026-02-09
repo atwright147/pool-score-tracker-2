@@ -507,6 +507,7 @@ function FriendsPage() {
 							<Title order={3} mb="md">
 								Search Results
 							</Title>
+							<Table.ScrollContainer minWidth={500}>
 							<Table striped highlightOnHover className={styles.table}>
 								<Table.Thead>
 									<Table.Tr>
@@ -538,6 +539,7 @@ function FriendsPage() {
 									))}
 								</Table.Tbody>
 							</Table>
+							</Table.ScrollContainer>
 						</Paper>
 					)}
 				</Stack>

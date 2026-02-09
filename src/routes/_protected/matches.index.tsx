@@ -414,6 +414,7 @@ function MatchesPage() {
 				{previousMatches.length === 0 ? (
 					<Text c="dimmed">No previous matches found</Text>
 				) : (
+					<Table.ScrollContainer minWidth={500}>
 					<Table striped highlightOnHover>
 						<Table.Thead>
 							<Table.Tr>
@@ -473,6 +474,7 @@ function MatchesPage() {
 							))}
 						</Table.Tbody>
 					</Table>
+					</Table.ScrollContainer>
 				)}
 			</Paper>
 
