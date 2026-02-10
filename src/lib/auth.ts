@@ -1,15 +1,17 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import type { CreateEmailOptions, Resend } from 'resend';
 
 import { db } from '~/db/db';
 import * as schema from '~/db/schema';
 
 // Conditionally import Resend if API key is available
-let resend: any = null;
+let resend: Resend | null = null;
 if (process.env.RESEND_API_KEY) {
 	try {
-		const { Resend } = require('resend');
-		resend = new Resend(process.env.RESEND_API_KEY);
+		// eslint-disable-next-line global-require
+		const { Resend: ResendClass } = require('resend');
+		resend = new ResendClass(process.env.RESEND_API_KEY);
 	} catch (_error) {
 		console.warn('Resend package not installed. Email verification disabled.');
 	}
@@ -57,9 +59,15 @@ export const auth = betterAuth({
 	},
 	...(resend && {
 		emailVerification: {
-			sendVerificationEmail: async ({ user, url }) => {
+			sendVerificationEmail: async ({
+				user,
+				url,
+			}: {
+				user: { email: string };
+				url: string;
+			}) => {
 				try {
-					await resend.emails.send({
+					const emailOptions: CreateEmailOptions = {
 						from: process.env.RESEND_FROM_EMAIL || 'noreply@resend.dev',
 						to: user.email,
 						subject: 'Verify your email',
@@ -68,7 +76,8 @@ export const auth = betterAuth({
 							<p><a href="${url}">Click here to verify your email</a></p>
 							<p>This link expires in 24 hours.</p>
 						`,
-					});
+					};
+					await (resend as Resend).emails.send(emailOptions);
 				} catch (error) {
 					console.error('Failed to send verification email:', error);
 					throw error;

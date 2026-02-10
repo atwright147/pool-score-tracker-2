@@ -130,6 +130,7 @@ const getYearActivity = createServerFn({ method: 'GET' }).handler(async () => {
 	// Group by date
 	const activityMap: Record<string, number> = {};
 	allMatches.forEach((match) => {
+		if (!match.createdAt) return;
 		const date = new Date(match.createdAt);
 		// Format as YYYY-MM-DD
 		const year = date.getFullYear();
@@ -156,7 +157,6 @@ export const Route = createFileRoute('/_protected/insights')({
 });
 
 function InsightsPage() {
-	const { session } = Route.useRouteContext();
 	const { matchHistory, friends, yearActivity } = Route.useLoaderData();
 
 	// Calculate stats
@@ -187,7 +187,10 @@ function InsightsPage() {
 	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
 	const gamesByDate = matchHistory
-		.filter((m) => new Date(m.date) >= thirtyDaysAgo)
+		.filter(
+			(m): m is typeof m & { date: Date } =>
+				m.date !== null && new Date(m.date) >= thirtyDaysAgo,
+		)
 		.reverse()
 		.map((m, idx) => ({
 			name: `Day ${idx + 1}`,
@@ -213,8 +216,6 @@ function InsightsPage() {
 			winRate: rate,
 		};
 	});
-
-	const _COLORS = ['#51cf66', '#868e96', '#ff6b6b', '#4c6ef5', '#ffd43b'];
 
 	return (
 		<Stack gap="xl">
@@ -311,9 +312,9 @@ function InsightsPage() {
 									}}
 								/>
 								<Bar dataKey="result" fill="#4c6ef5">
-									{recentForm.map((entry, index) => (
+									{recentForm.map((entry) => (
 										<Cell
-											key={`cell-${index}`}
+											key={entry.name}
 											fill={entry.result === 1 ? '#51cf66' : '#868e96'}
 										/>
 									))}
@@ -345,8 +346,8 @@ function InsightsPage() {
 									fill="#8884d8"
 									dataKey="value"
 								>
-									{winDistribution.map((entry, index) => (
-										<Cell key={`cell-${index}`} fill={entry.color} />
+									{winDistribution.map((entry) => (
+										<Cell key={entry.name} fill={entry.color} />
 									))}
 								</Pie>
 								<Tooltip />
