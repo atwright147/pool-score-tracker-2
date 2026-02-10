@@ -1,0 +1,11 @@
+.heatmapCell {
+	width: 12px;
+	height: 12px;
+	border-radius: 2px;
+	cursor: pointer;
+	transition: transform 0.2s;
+}
+
+.heatmapCell:hover {
+	transform: scale(1.3);
+}

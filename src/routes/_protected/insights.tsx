@@ -18,8 +18,10 @@ import {
 	XAxis,
 	YAxis,
 } from 'recharts';
+
 import { db } from '~/db/db';
 import { friendship, matches } from '~/db/schema';
+import styles from './insights.module.css';
 
 // Server function to get detailed match history
 const getMatchHistory = createServerFn({ method: 'GET' }).handler(async () => {
@@ -622,21 +624,14 @@ function ActivityHeatmap({ yearActivity }: ActivityHeatmapProps) {
 				{weeksInYear.map((week, weekIdx) =>
 					week.map((day, dayIdx) => (
 						<div
-							key={`${weekIdx}-${dayIdx}`}
+							key={`${weekIdx}-${
+								// biome-ignore lint/suspicious/noArrayIndexKey: it's fine here
+								dayIdx
+							}`}
+							className={styles.heatmapCell}
 							title={`${day.date}: ${day.games} game${day.games !== 1 ? 's' : ''}`}
 							style={{
-								width: '12px',
-								height: '12px',
 								backgroundColor: getColor(day.games),
-								borderRadius: '2px',
-								cursor: 'pointer',
-								transition: 'transform 0.2s',
-							}}
-							onMouseEnter={(e) => {
-								(e.target as HTMLElement).style.transform = 'scale(1.3)';
-							}}
-							onMouseLeave={(e) => {
-								(e.target as HTMLElement).style.transform = 'scale(1)';
 							}}
 						/>
 					)),

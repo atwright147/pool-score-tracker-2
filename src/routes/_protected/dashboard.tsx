@@ -205,6 +205,7 @@ const getRecentMatches = createServerFn({ method: 'GET' }).handler(async () => {
 				},
 			},
 			winner: true,
+			games: true,
 		},
 		orderBy: desc(matches.createdAt),
 		limit: 5,
@@ -234,9 +235,6 @@ function DashboardPage() {
 		null,
 	);
 
-	const _currentPlayer = session?.user
-		? { id: session.user.id, name: session.user.name }
-		: null;
 	const playerStats = friends.length > 0 ? friends[0] : null;
 
 	const handleFriendRequest = async (

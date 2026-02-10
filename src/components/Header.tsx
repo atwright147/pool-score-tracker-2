@@ -1,25 +1,20 @@
+import { AppShell, Burger, Drawer, Group, NavLink, Stack } from '@mantine/core';
 import {
-	AppShell,
-	Burger,
-	Drawer,
-	Group,
-	NavLink,
-	Stack,
-	Title,
-} from '@mantine/core';
-import {
+	IconChessKnight,
 	IconFriends,
+	IconGraph,
 	IconHome,
 	IconLock,
 	IconLogout2,
-	IconShield,
-	IconTrophy,
 } from '@tabler/icons-react';
 import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 
+import { useSession } from '~/lib/auth-client';
+
 export default function Header() {
 	const [isOpen, setIsOpen] = useState(false);
+	const { data: session } = useSession();
 
 	return (
 		<>
@@ -34,7 +29,7 @@ export default function Header() {
 			<Drawer
 				opened={isOpen}
 				onClose={() => setIsOpen(false)}
-				title={<Title order={3}>Navigation</Title>}
+				title="Navigation"
 				size="sm"
 			>
 				<Stack gap="xs">
@@ -48,17 +43,17 @@ export default function Header() {
 
 					<NavLink
 						component={Link}
-						to="/auth"
-						label="Authentication"
-						leftSection={<IconLock size={20} />}
+						to="/matches"
+						label="Matches"
+						leftSection={<IconChessKnight size={20} />}
 						onClick={() => setIsOpen(false)}
 					/>
 
 					<NavLink
 						component={Link}
-						to="/logout"
-						label="Logout"
-						leftSection={<IconLogout2 size={20} />}
+						to="/insights"
+						label="Insights"
+						leftSection={<IconGraph size={20} />}
 						onClick={() => setIsOpen(false)}
 					/>
 
@@ -70,96 +65,25 @@ export default function Header() {
 						onClick={() => setIsOpen(false)}
 					/>
 
-					<NavLink
-						component={Link}
-						to="/matches"
-						label="Matches"
-						leftSection={<IconTrophy size={20} />}
-						onClick={() => setIsOpen(false)}
-					/>
-
-					<NavLink
-						component={Link}
-						to="/protected"
-						label="Protected Page"
-						leftSection={<IconShield size={20} />}
-						onClick={() => setIsOpen(false)}
-					/>
-
-					{/* <NavLink
-						component={Link}
-						to="/demo/start/server-funcs"
-						label="Start - Server Functions"
-						leftSection={<IconFunction size={20} />}
-						onClick={() => setIsOpen(false)}
-					/>
-
-					<NavLink
-						component={Link}
-						to="/demo/start/api-request"
-						label="Start - API Request"
-						leftSection={<IconNetwork size={20} />}
-						onClick={() => setIsOpen(false)}
-					/>
-
-					<NavLink
-						component={Link}
-						to="/demo/start/ssr"
-						label="Start - SSR Demos"
-						leftSection={<IconNote size={20} />}
-						rightSection={
-							groupedExpanded.StartSSRDemo ? (
-								<IconChevronDown size={16} />
-							) : (
-								<IconChevronRight size={16} />
-							)
-						}
-						onClick={(e) => {
-							e.preventDefault();
-							setGroupedExpanded((prev) => ({
-								...prev,
-								StartSSRDemo: !prev.StartSSRDemo,
-							}));
-						}}
-					/> */}
-
-					{/* {groupedExpanded.StartSSRDemo && (
-						<Box pl="md">
-							<Stack gap="xs">
-								<NavLink
-									component={Link}
-									to="/demo/start/ssr/spa-mode"
-									label="SPA Mode"
-									leftSection={<IconNote size={16} />}
-									onClick={() => setIsOpen(false)}
-								/>
-
-								<NavLink
-									component={Link}
-									to="/demo/start/ssr/full-ssr"
-									label="Full SSR"
-									leftSection={<IconNote size={16} />}
-									onClick={() => setIsOpen(false)}
-								/>
-
-								<NavLink
-									component={Link}
-									to="/demo/start/ssr/data-only"
-									label="Data Only"
-									leftSection={<IconNote size={16} />}
-									onClick={() => setIsOpen(false)}
-								/>
-							</Stack>
-						</Box>
+					{!session && (
+						<NavLink
+							component={Link}
+							to="/auth"
+							label="Authentication"
+							leftSection={<IconLock size={20} />}
+							onClick={() => setIsOpen(false)}
+						/>
 					)}
 
-					<NavLink
-						component={Link}
-						to="/demo/tanstack-query"
-						label="TanStack Query"
-						leftSection={<IconNetwork size={20} />}
-						onClick={() => setIsOpen(false)}
-					/> */}
+					{session && (
+						<NavLink
+							component={Link}
+							to="/logout"
+							label="Logout"
+							leftSection={<IconLogout2 size={20} />}
+							onClick={() => setIsOpen(false)}
+						/>
+					)}
 				</Stack>
 			</Drawer>
 		</>
